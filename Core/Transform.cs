@@ -34,7 +34,7 @@ public class Transform
         }
     }
 
-    private const int TRANSLATION_X = 3, TRANSLATION_Y = 7, TRANSLATION_Z = 11;
+    private const int TRANSLATION_X = 12, TRANSLATION_Y = 13, TRANSLATION_Z = 14;
     private const int SCALE_X = 0, SCALE_Y = 5, SCALE_Z = 10;
 
     public float[] Matrix = new float[16]
