@@ -1,6 +1,6 @@
 using Blazor.Extensions.Canvas.WebGL;
 
-namespace MtgWeb.Core;
+namespace MtgWeb.Core.Render;
 
 public class Mesh
 {

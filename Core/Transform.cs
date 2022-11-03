@@ -37,6 +37,8 @@ public class Transform
     private const int TRANSLATION_X = 12, TRANSLATION_Y = 13, TRANSLATION_Z = 14;
     private const int SCALE_X = 0, SCALE_Y = 5, SCALE_Z = 10;
 
+    public Matrix4x4 Matrix0 = Matrix4x4.Identity;
+    
     public float[] Matrix = new float[16]
     {
         1, 0, 0, 0,

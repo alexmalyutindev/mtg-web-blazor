@@ -24,4 +24,16 @@
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 
+<script type="text/javascript">
+    window.AddInputListener = function (listener) {
+        window.addEventListener("keydown", function(e) {
+            listener.invokeMethodAsync("OnKeyDown", e.key);
+        });
+        window.addEventListener("keyup", function(e) {
+            listener.invokeMethodAsync("OnKeyUp", e.key);
+        });
+        // TODO: Add mouse events.
+    }
+</script>
+
 </html>
