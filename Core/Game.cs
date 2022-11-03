@@ -1,77 +1,23 @@
-using System.Numerics;
+using System.Diagnostics;
 using Blazor.Extensions.Canvas.WebGL;
 
 namespace MtgWeb.Core;
-
-static class Time
-{
-    public static float CurrentTime;
-    public static float DeltaTime;
-    public static float LastUpdateTime;
-}
-
-public class Transform
-{
-    public Vector3 Position {
-        get => _position;
-        set
-        {
-            _isDirty = true;
-            _position = value;
-        }
-    }
-    public Vector3 Rotation {
-        get => _rotation;
-        set
-        {
-            _isDirty = true;
-            _rotation = value;
-        }
-    }
-    public Vector3 Scale {
-        get => _scale;
-        set
-        {
-            _isDirty = true;
-            _scale = value;
-        }
-    }
-    
-    public float[] Matrix = new float[16];
-
-    private bool _isDirty = true;
-    private Vector3 _position = Vector3.Zero;
-    private Vector3 _rotation = Vector3.Zero;
-    private Vector3 _scale = Vector3.One;
-    
-    public void Update()
-    {
-        _isDirty = false;
-        Matrix[13] = Position.X;
-        Matrix[14] = Position.Y;
-        Matrix[15] = Position.Z;
-    }
-}
-
-public class Entity
-{
-    public String Name = "New Entity";
-    public readonly Transform Transform = new();
-}
-
-public class Scene
-{
-    public Entity[] root;
-}
 
 public class Game
 {
     private readonly WebGLContext _context;
     private Scene? _currentScene;
 
+    private Stopwatch _stopwatch;
+
+    // Temp
+    private Transform _camera = new Transform();
+    private Mesh _quad = Mesh.Quad();
+
     public Game(WebGLContext context)
     {
         _context = context;
+        _stopwatch = new Stopwatch();
     }
 
     public async Task Init()
@@ -83,37 +29,39 @@ public class Game
             new Entity(),
             new Entity(),
         };
+
+        await _quad.Init(_context);
+        // TODO: Shader
     }
 
     public async Task MainLoop()
     {
-        UpdateTime();
-        Update();
+        Time.Tick(0.032f);
+        _stopwatch.Restart();
+
+        await Update();
         Render();
 
-        await Task.Delay(32);
+        _stopwatch.Stop();
+
+        await Task.Delay((int) Math.Max(0, 32 - _stopwatch.ElapsedMilliseconds));
     }
 
-    private void UpdateTime()
+    private async Task Update()
     {
-        Time.LastUpdateTime = Time.CurrentTime;
-        Time.CurrentTime += 0.032f;
-        Time.DeltaTime = 0.032f;
-    }
-
-    private void Update()
-    {
-        
+        await Task.Delay(7);
     }
 
     private void Render()
     {
+        _camera.Update();
+
         foreach (var entity in _currentScene.root)
         {
             entity.Transform.Update();
         }
-        
-        _context.ClearColorAsync(MathF.Sin(Time.CurrentTime), 0, 0, 1);
+
+        _context.ClearColorAsync(MathF.Cos(Time.CurrentTime * MathF.PI * 2) * 0.5f + 0.5f, 0, 0, 1);
         _context.ClearAsync(BufferBits.COLOR_BUFFER_BIT);
     }
 }
