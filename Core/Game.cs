@@ -10,12 +10,19 @@ namespace MtgWeb.Core;
 public class Camera
 {
     public readonly Transform Transform = new();
+    public float[] WorldToView => Transform.WorldToView;
     public readonly float[] Projection = new float[16];
+
+    public Vector4 ClearColor = new(0.8f, 0.8f, 0.8f, 1);
+    
+    public float AspectRatio = 800f / 600f;
+    public float NearPlane = 0.01f;
+    public float FarPlane = 100f;
 
     public Camera()
     {
-        Matrix4x4.CreatePerspectiveFieldOfView(1.5f, 800f / 600f, 0.01f, 100f)
-            .ToArray(ref Projection);
+        Matrix4x4.CreatePerspectiveFieldOfView(1.5f, AspectRatio, NearPlane, FarPlane)
+            .ToArray(in Projection);
     }
 }
 
@@ -49,10 +56,11 @@ public class Game
             },
             new Entity()
             {
+                Name = "Floor",
                 Transform =
                 {
-                    Position = new Vector3(-0.5f, 0.5f, 2f),
-                    Scale = new Vector3(1f, 1.5f, 1f)
+                    Rotation = new Vector3(90, 0, 0),
+                    Scale = new Vector3(5f, 5f, 5f)
                 }
             },
             new Entity()
@@ -65,7 +73,7 @@ public class Game
         {
             Transform =
             {
-                Position = new Vector3(0.0f, -1f, -5)
+                Position = new Vector3(0.0f, 1f, 5f)
             }
         };
         await _quad.Init(_context);
@@ -89,7 +97,8 @@ public class Game
     private async Task Update()
     {
         var axis = Input.Axis * Time.DeltaTime;
-        _camera.Transform.Position += new Vector3(-axis.X, 0, axis.Y);
+        _camera.Transform.Position += new Vector3(axis.X, 0, -axis.Y);
+        _camera.Transform.Rotation += new Vector3(0, Input.MouseDelta.X, 0);
     }
 
     private async Task Render()
@@ -102,9 +111,10 @@ public class Game
         }
 
         await _context.DisableAsync(EnableCap.CULL_FACE);
-        await _context.EnableAsync(EnableCap.DEPTH_TEST); // TODO: Just for now
+        await _context.EnableAsync(EnableCap.DEPTH_TEST);
 
-        await _context.ClearColorAsync(0, 0, 0, 1);
+        var clearColor = _camera.ClearColor;
+        await _context.ClearColorAsync(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W);
         await _context.ClearAsync(BufferBits.COLOR_BUFFER_BIT);
 
         await _context.ViewportAsync(0, 0, 800, 600);
@@ -112,7 +122,7 @@ public class Game
         await _checkerShader.Bind(_context);
 
         await _context.UniformAsync(_checkerShader.Time, Time.CurrentTime);
-        await _context.UniformMatrixAsync(_checkerShader.WorldToView, false, _camera.Transform.Matrix);
+        await _context.UniformMatrixAsync(_checkerShader.WorldToView, false, _camera.WorldToView);
         await _context.UniformMatrixAsync(_checkerShader.Projection, false, _camera.Projection);
 
         await _quad.Bind(_context, _checkerShader);

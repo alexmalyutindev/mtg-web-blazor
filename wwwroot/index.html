@@ -25,14 +25,23 @@
 </body>
 
 <script type="text/javascript">
-    window.AddInputListener = function (listener) {
-        window.addEventListener("keydown", function(e) {
-            listener.invokeMethodAsync("OnKeyDown", e.key);
-        });
-        window.addEventListener("keyup", function(e) {
-            listener.invokeMethodAsync("OnKeyUp", e.key);
-        });
-        // TODO: Add mouse events.
+    window.BindInput = function (bridge) {
+        let inputListener = {
+            mousemove : (e) => bridge.invokeMethodAsync("OnMouseMove", e.offsetX, e.offsetY),
+            keydown : (e) => bridge.invokeMethodAsync("OnKeyDown", e.key),
+            keyup : (e) => bridge.invokeMethodAsync("OnKeyUp", e.key)
+        }
+        
+        // TODO: Add more mouse events.
+        window.addEventListener("mousemove", inputListener.mousemove);
+        window.addEventListener("keydown", inputListener.keydown);
+        window.addEventListener("keyup", inputListener.keyup);
+
+        window.UnbindInput = () => {
+            window.removeEventListener("mousemove", inputListener.mousemove);
+            window.removeEventListener("keydown", inputListener.keydown);
+            window.removeEventListener("keyup", inputListener.keyup);
+        };
     }
 </script>
 

@@ -37,10 +37,8 @@ public class Shader
             v_Texcoord = a_Texcoord;
             vec3 positionWS = (u_ObjectToWorld * vec4(a_PositionOS, 1.0)).xyz;
             vec3 positionVS = (u_WorldToView * vec4(positionWS, 1.0)).xyz;
-
             vec4 positionCS = u_Projection * vec4(positionVS, 1.0);
 
-            // positionCS = vec4(positionWS, 1);
             gl_Position = positionCS;
         }";
 
@@ -50,10 +48,16 @@ public class Shader
 
         uniform sampler2D u_MainTex;
 
-        float checkers(in vec2 p)
+        float checkers2(in vec2 p)
         {
             vec2 s = sign(fract(p*.5)-.5);
             return 0.5 - 0.5 * s.x * s.y;
+        }
+
+        float checkers( in vec2 p )
+        {
+            vec2 q = floor(p);
+            return mod(q.x+q.y,2.);
         }
 
         void main(void) {

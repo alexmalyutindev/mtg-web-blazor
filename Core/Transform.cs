@@ -1,4 +1,5 @@
 using System.Numerics;
+using MtgWeb.Core.Utils;
 
 namespace MtgWeb.Core;
 
@@ -34,12 +35,26 @@ public class Transform
         }
     }
 
+    private const float DEG_TO_RAD = 0.017453292519943295769236907684886f;
     private const int TRANSLATION_X = 12, TRANSLATION_Y = 13, TRANSLATION_Z = 14;
-    private const int SCALE_X = 0, SCALE_Y = 5, SCALE_Z = 10;
-
-    public Matrix4x4 Matrix0 = Matrix4x4.Identity;
     
     public float[] Matrix = new float[16]
+    {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1,
+    };
+    
+    public float[] InvMatrix = new float[16]
+    {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1,
+    };
+    
+    public float[] WorldToView = new float[16]
     {
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -58,12 +73,28 @@ public class Transform
             return;
 
         _isDirty = false;
-        Matrix[TRANSLATION_X] = _position.X;
-        Matrix[TRANSLATION_Y] = _position.Y;
-        Matrix[TRANSLATION_Z] = _position.Z;
+        var translation = Matrix4x4.CreateTranslation(_position);
+        var scale = Matrix4x4.CreateScale(_scale);
+        var quaternion = Quaternion.CreateFromYawPitchRoll(
+            _rotation.Y * DEG_TO_RAD,
+            _rotation.X * DEG_TO_RAD,
+            _rotation.Z * DEG_TO_RAD
+        );
 
-        Matrix[SCALE_X] *= _scale.X;
-        Matrix[SCALE_Y] *= _scale.Y;
-        Matrix[SCALE_Z] *= _scale.Z;
+        var result = translation;
+        result = Matrix4x4.Transform(result, quaternion);
+        result = scale * result;
+
+        result.ToArray(in Matrix);
+        
+        // BUG: Fix it!
+        // Why need to invert translation?
+        result.ToArray(in WorldToView);
+        WorldToView[TRANSLATION_X] *= -1;
+        WorldToView[TRANSLATION_Y] *= -1;
+        WorldToView[TRANSLATION_Z] *= -1;
+        
+        Matrix4x4.Invert(result, out result);
+        result.ToArray(in InvMatrix);
     }
 }

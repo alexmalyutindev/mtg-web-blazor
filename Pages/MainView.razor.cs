@@ -7,7 +7,7 @@ using MtgWeb.Core;
 
 namespace MtgWeb.Pages;
 
-public partial class MainView : ComponentBase
+public partial class MainView : ComponentBase, IDisposable
 {
     [Inject] private IJSRuntime _runtime { get; set; }
     
@@ -15,12 +15,12 @@ public partial class MainView : ComponentBase
     private WebGLContext _context;
     private Game _game;
 
-    private Input.InputBridge _inputBridge;
+    private Input.Bridge _bridge;
 
     protected override async void OnInitialized()
     {
-        _inputBridge = new Input.InputBridge();
-        await _inputBridge.Bind(_runtime);
+        _bridge = new Input.Bridge();
+        await _bridge.Bind(_runtime);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -35,5 +35,11 @@ public partial class MainView : ComponentBase
         await _game.MainLoop();
 
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _bridge.Unbind(_runtime);
+        _context.Dispose();
     }
 }
