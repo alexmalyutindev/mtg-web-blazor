@@ -2,29 +2,8 @@ using System.Diagnostics;
 using System.Numerics;
 using Blazor.Extensions.Canvas.WebGL;
 using MtgWeb.Core.Render;
-using MtgWeb.Core.Utils;
-using MtgWeb.Pages;
 
 namespace MtgWeb.Core;
-
-public class Camera
-{
-    public readonly Transform Transform = new();
-    public float[] WorldToView => Transform.WorldToView;
-    public readonly float[] Projection = new float[16];
-
-    public Vector4 ClearColor = new(0.8f, 0.8f, 0.8f, 1);
-    
-    public float AspectRatio = 800f / 600f;
-    public float NearPlane = 0.01f;
-    public float FarPlane = 100f;
-
-    public Camera()
-    {
-        Matrix4x4.CreatePerspectiveFieldOfView(1.5f, AspectRatio, NearPlane, FarPlane)
-            .ToArray(in Projection);
-    }
-}
 
 public class Game
 {
@@ -46,28 +25,7 @@ public class Game
 
     public async Task Init()
     {
-        _currentScene = new Scene();
-        _currentScene.root = new[]
-        {
-            new Entity()
-            {
-                Name = "Test Quad",
-                Transform = {Position = new Vector3(0.2f, 0.5f, 1f)}
-            },
-            new Entity()
-            {
-                Name = "Floor",
-                Transform =
-                {
-                    Rotation = new Vector3(90, 0, 0),
-                    Scale = new Vector3(5f, 5f, 5f)
-                }
-            },
-            new Entity()
-            {
-                Transform = {Position = new Vector3(0.0f, 0.5f, 0.0f)}
-            }
-        };
+        _currentScene = await Resources.LoadScene("Scene");
 
         _camera = new Camera()
         {
@@ -77,7 +35,7 @@ public class Game
             }
         };
         await _quad.Init(_context);
-        _checkerShader = await Shader.CheckerShader(_context);
+        _checkerShader = await Shader.Load(_context, "Checker");
     }
 
     public async Task MainLoop()
@@ -85,6 +43,7 @@ public class Game
         Time.Tick(0.032f);
         _stopwatch.Restart();
 
+        Input.Update();
         await Update();
         await Render();
 
@@ -97,15 +56,20 @@ public class Game
     private async Task Update()
     {
         var axis = Input.Axis * Time.DeltaTime;
-        _camera.Transform.Position += new Vector3(axis.X, 0, -axis.Y);
-        _camera.Transform.Rotation += new Vector3(0, Input.MouseDelta.X, 0);
+        if (axis.Y != 0 || axis.X != 0)
+        {
+            _camera.Transform.Position -= _camera.Transform.Forward * axis.Y; // TODO: Investigate negation of Forward.
+            _camera.Transform.Position += _camera.Transform.Right * axis.X; 
+        }
+
+        _camera.Transform.Rotation += new Vector3(0, Input.MouseDelta.X * Time.DeltaTime * 5f, 0);
     }
 
     private async Task Render()
     {
         _camera.Transform.Update();
 
-        foreach (var entity in _currentScene.root)
+        foreach (var entity in _currentScene.Root)
         {
             entity.Transform.Update();
         }
@@ -126,7 +90,7 @@ public class Game
         await _context.UniformMatrixAsync(_checkerShader.Projection, false, _camera.Projection);
 
         await _quad.Bind(_context, _checkerShader);
-        foreach (var entity in _currentScene.root)
+        foreach (var entity in _currentScene.Root)
         {
             await _context.UniformMatrixAsync(_checkerShader.ObjectToWorld, false, entity.Transform.Matrix);
             await _context.DrawElementsAsync(Primitive.TRIANGLES, _quad.Indices.Length, DataType.UNSIGNED_SHORT, 0);

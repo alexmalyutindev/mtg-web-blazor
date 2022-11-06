@@ -10,7 +10,7 @@ public class Transform
         get => _position;
         set
         {
-            _isDirty = true;
+            _hasChanged = true;
             _position = value;
         }
     }
@@ -20,7 +20,7 @@ public class Transform
         get => _rotation;
         set
         {
-            _isDirty = true;
+            _hasChanged = true;
             _rotation = value;
         }
     }
@@ -30,14 +30,24 @@ public class Transform
         get => _scale;
         set
         {
-            _isDirty = true;
+            _hasChanged = true;
             _scale = value;
         }
     }
 
+    public Vector3 Forward => new Vector3(Matrix[FORWARD_X], Matrix[FORWARD_Y], Matrix[FORWARD_Z]);
+    public Vector3 Right => new Vector3(Matrix[RIGHT_X], Matrix[RIGHT_Y], Matrix[RIGHT_Z]);
+    public Vector3 Up => new Vector3(Matrix[UP_X], Matrix[UP_Y], Matrix[UP_Z]);
+
+    public bool UpdateViewMatrix;
+
     private const float DEG_TO_RAD = 0.017453292519943295769236907684886f;
     private const int TRANSLATION_X = 12, TRANSLATION_Y = 13, TRANSLATION_Z = 14;
-    
+
+    private const int RIGHT_X = 0, RIGHT_Y = 4, RIGHT_Z = 8;
+    private const int UP_X = 1, UP_Y = 5, UP_Z = 9;
+    private const int FORWARD_X = 2, FORWARD_Y = 6, FORWARD_Z = 10;
+
     public float[] Matrix = new float[16]
     {
         1, 0, 0, 0,
@@ -45,7 +55,7 @@ public class Transform
         0, 0, 1, 0,
         0, 0, 0, 1,
     };
-    
+
     public float[] InvMatrix = new float[16]
     {
         1, 0, 0, 0,
@@ -53,7 +63,8 @@ public class Transform
         0, 0, 1, 0,
         0, 0, 0, 1,
     };
-    
+
+    // Updated only if UpdateViewMatrix is set to true.
     public float[] WorldToView = new float[16]
     {
         1, 0, 0, 0,
@@ -62,17 +73,18 @@ public class Transform
         0, 0, 0, 1,
     };
 
-    private bool _isDirty = true;
+    private bool _hasChanged = true;
+
     private Vector3 _position = Vector3.Zero;
     private Vector3 _rotation = Vector3.Zero;
     private Vector3 _scale = Vector3.One;
 
     public void Update()
     {
-        if (!_isDirty)
+        if (!_hasChanged)
             return;
 
-        _isDirty = false;
+        _hasChanged = false;
         var translation = Matrix4x4.CreateTranslation(_position);
         var scale = Matrix4x4.CreateScale(_scale);
         var quaternion = Quaternion.CreateFromYawPitchRoll(
@@ -81,20 +93,22 @@ public class Transform
             _rotation.Z * DEG_TO_RAD
         );
 
-        var result = translation;
-        result = Matrix4x4.Transform(result, quaternion);
-        result = scale * result;
+        var transform = translation;
+        transform = Matrix4x4.Transform(transform, quaternion);
 
-        result.ToArray(in Matrix);
-        
-        // BUG: Fix it!
-        // Why need to invert translation?
-        result.ToArray(in WorldToView);
-        WorldToView[TRANSLATION_X] *= -1;
-        WorldToView[TRANSLATION_Y] *= -1;
-        WorldToView[TRANSLATION_Z] *= -1;
-        
-        Matrix4x4.Invert(result, out result);
-        result.ToArray(in InvMatrix);
+        if (UpdateViewMatrix)
+        {
+            // WorldToView is Rotation * InvTranslation
+            transform.ToArray(in WorldToView);
+            WorldToView[TRANSLATION_X] = -WorldToView[TRANSLATION_X];
+            WorldToView[TRANSLATION_Y] = -WorldToView[TRANSLATION_Y];
+            WorldToView[TRANSLATION_Z] = -WorldToView[TRANSLATION_Z];
+        }
+
+        transform = scale * transform;
+        transform.ToArray(in Matrix);
+
+        Matrix4x4.Invert(transform, out transform);
+        transform.ToArray(in InvMatrix);
     }
 }

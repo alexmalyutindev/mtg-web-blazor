@@ -1,3 +1,4 @@
+using System.Net;
 using Blazor.Extensions.Canvas.WebGL;
 
 namespace MtgWeb.Core.Render;
@@ -19,57 +20,21 @@ public class Shader
     private String _vertexSrc;
     private String _fragmentSrc;
 
+    private static Dictionary<string, Shader> _shaders = new();
 
-    public static async Task<Shader> CheckerShader(WebGLContext context)
+
+    public static async Task<Shader> Load(WebGLContext context, String name)
     {
-        string vertCode = @"
-        uniform float u_Time;
-        uniform mat4 u_ObjectToWorld;
-        uniform mat4 u_WorldToView;
-        uniform mat4 u_Projection;
-
-        attribute vec3 a_PositionOS;
-        attribute vec2 a_Texcoord;
-
-        varying vec2 v_Texcoord;
-
-        void main(void) {
-            v_Texcoord = a_Texcoord;
-            vec3 positionWS = (u_ObjectToWorld * vec4(a_PositionOS, 1.0)).xyz;
-            vec3 positionVS = (u_WorldToView * vec4(positionWS, 1.0)).xyz;
-            vec4 positionCS = u_Projection * vec4(positionVS, 1.0);
-
-            gl_Position = positionCS;
-        }";
-
-        var fragCode = @"
-        precision mediump float;
-        varying mediump vec2 v_Texcoord;
-
-        uniform sampler2D u_MainTex;
-
-        float checkers2(in vec2 p)
+        if (_shaders.TryGetValue(name, out var shader))
         {
-            vec2 s = sign(fract(p*.5)-.5);
-            return 0.5 - 0.5 * s.x * s.y;
+            return shader;
         }
 
-        float checkers( in vec2 p )
+        var (vertex, fragment) = await Resources.LoadShader(name);
+        shader = new Shader()
         {
-            vec2 q = floor(p);
-            return mod(q.x+q.y,2.);
-        }
-
-        void main(void) {
-            float checker = checkers(v_Texcoord.xy * 5.0);
-            gl_FragColor = mix(vec4(.2, .2, .2, 1.0), vec4(.9, .9, .9, 1.0), checker);
-        }";
-
-        // TODO: Shader loading from file.
-        var shader = new Shader()
-        {
-            _vertexSrc = vertCode,
-            _fragmentSrc = fragCode
+            _vertexSrc = vertex,
+            _fragmentSrc = fragment
         };
 
         await shader.Compile(context);
@@ -79,13 +44,7 @@ public class Shader
         shader.PositionOS = (uint) await context.GetAttribLocationAsync(shader._program, "a_PositionOS");
         shader.Texcoord = (uint) await context.GetAttribLocationAsync(shader._program, "a_Texcoord");
 
-        Console.WriteLine(
-            $"ObjectToWorld: {shader.ObjectToWorld.Id}\n" +
-            $"WorldToView: {shader.WorldToView.Id}\n" +
-            $"Projection: {shader.Projection.Id}\n" +
-            $"PositionOS: {shader.PositionOS}\n" +
-            $"Texcoord: {shader.Texcoord}"
-        );
+        _shaders.Add(name, shader);
 
         return shader;
     }

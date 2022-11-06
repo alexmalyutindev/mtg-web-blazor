@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using Blazor.Extensions;
 using Blazor.Extensions.Canvas.WebGL;
 using Microsoft.AspNetCore.Components;
@@ -10,7 +11,8 @@ namespace MtgWeb.Pages;
 public partial class MainView : ComponentBase, IDisposable
 {
     [Inject] private IJSRuntime _runtime { get; set; }
-    
+    [Inject] private HttpClient _HttpClient { get; set; }
+
     private BECanvasComponent _canvasReference;
     private WebGLContext _context;
     private Game _game;
@@ -19,6 +21,7 @@ public partial class MainView : ComponentBase, IDisposable
 
     protected override async void OnInitialized()
     {
+        Resources.Init(_HttpClient);
         _bridge = new Input.Bridge();
         await _bridge.Bind(_runtime);
     }
