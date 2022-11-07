@@ -137,17 +137,14 @@ public static class Input
             await runtime.InvokeVoidAsync("BindInput", _reference);
         }
 
-        [JSInvokable]
+        [JSInvokable(nameof(OnMouseDown))]
         public void OnMouseDown(int button) => Input.OnMouseDown((MouseButton) button);
 
-        [JSInvokable]
+        [JSInvokable(nameof(OnMouseUp))]
         public void OnMouseUp(int button) => Input.OnMouseUp((MouseButton) button);
 
         [JSInvokable(nameof(OnMouseMove))]
-        public void OnMouseMove(float x, float y)
-        {
-            Input.OnMouseMove(new Vector2(x, y));
-        }
+        public void OnMouseMove(float x, float y) => Input.OnMouseMove(new Vector2(x, y));
 
         [JSInvokable(nameof(OnKeyDown))]
         public void OnKeyDown(String key) => Input.OnKeyDown(key);

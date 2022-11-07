@@ -1,3 +1,5 @@
+precision mediump float;
+
 uniform float u_Time;
 uniform mat4 u_ObjectToWorld;
 uniform mat4 u_WorldToView;
@@ -7,6 +9,7 @@ attribute vec3 a_PositionOS;
 attribute vec2 a_Texcoord;
 
 varying vec2 v_Texcoord;
+varying vec3 v_PositionWS;
 
 void main(void) {
     v_Texcoord = a_Texcoord;
@@ -14,5 +17,6 @@ void main(void) {
     vec3 positionVS = (u_WorldToView * vec4(positionWS, 1.0)).xyz;
     vec4 positionCS = u_Projection * vec4(positionVS, 1.0);
 
+    v_PositionWS = positionWS;
     gl_Position = positionCS;
 }
