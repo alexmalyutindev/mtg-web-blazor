@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtgWeb", "Game\MtgWeb.csproj", "{1B5EC859-9D3A-4819-8397-8D502EB41FD1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Extensions.Canvas", "Canvas\src\Blazor.Extensions.Canvas\Blazor.Extensions.Canvas.csproj", "{D810A34D-EC8E-4285-AE38-34B560FBDF68}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Extensions.Canvas.JS", "Canvas\src\Blazor.Extensions.Canvas.JS\Blazor.Extensions.Canvas.JS.csproj", "{426BBB7E-1EE7-48AD-9451-AD4F46E4DFC6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1B5EC859-9D3A-4819-8397-8D502EB41FD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B5EC859-9D3A-4819-8397-8D502EB41FD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B5EC859-9D3A-4819-8397-8D502EB41FD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B5EC859-9D3A-4819-8397-8D502EB41FD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D810A34D-EC8E-4285-AE38-34B560FBDF68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D810A34D-EC8E-4285-AE38-34B560FBDF68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D810A34D-EC8E-4285-AE38-34B560FBDF68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D810A34D-EC8E-4285-AE38-34B560FBDF68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{426BBB7E-1EE7-48AD-9451-AD4F46E4DFC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{426BBB7E-1EE7-48AD-9451-AD4F46E4DFC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{426BBB7E-1EE7-48AD-9451-AD4F46E4DFC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{426BBB7E-1EE7-48AD-9451-AD4F46E4DFC6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
