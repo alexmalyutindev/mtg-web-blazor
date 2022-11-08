@@ -1,4 +1,5 @@
 using System.Numerics;
+using Blazor.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
@@ -80,9 +81,9 @@ public static class Input
         }
     }
 
-    private static void OnMouseMove(Vector2 position)
+    private static void OnMouseMove(Vector2 position, Vector2 delta)
     {
-        _rawMousePosition = position;
+        _rawMousePosition += delta;
     }
 
     private static void OnKeyDown(String key)
@@ -132,7 +133,7 @@ public static class Input
             _reference = DotNetObjectReference.Create(this);
         }
 
-        public async Task Bind(IJSRuntime runtime)
+        public async Task Bind(IJSRuntime runtime, BECanvasComponent canvas)
         {
             await runtime.InvokeVoidAsync("BindInput", _reference);
         }
@@ -144,7 +145,10 @@ public static class Input
         public void OnMouseUp(int button) => Input.OnMouseUp((MouseButton) button);
 
         [JSInvokable(nameof(OnMouseMove))]
-        public void OnMouseMove(float x, float y) => Input.OnMouseMove(new Vector2(x, y));
+        public void OnMouseMove(float x, float y, float dX, float dY)
+        {
+            Input.OnMouseMove(new Vector2(x, y), new Vector2(dX, dY));
+        }
 
         [JSInvokable(nameof(OnKeyDown))]
         public void OnKeyDown(String key) => Input.OnKeyDown(key);

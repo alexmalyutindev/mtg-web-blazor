@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using Blazor.Extensions;
 using Blazor.Extensions.Canvas.WebGL;
 using Microsoft.AspNetCore.Components;
@@ -23,8 +22,16 @@ public partial class MainView : ComponentBase, IDisposable
     {
         Resources.Init(_HttpClient);
         _bridge = new Input.Bridge();
-        await _bridge.Bind(_runtime);
+        await _bridge.Bind(_runtime, _canvasReference);
     }
+
+    private void RequestMouseLock(MouseEventArgs obj)
+    {
+        _runtime.InvokeVoidAsync(nameof(RequestMouseLock), _canvasReference.Id);
+    }
+
+    private bool _shouldRender = true;
+    private Task mainLoop = Task.CompletedTask;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -35,9 +42,21 @@ public partial class MainView : ComponentBase, IDisposable
             await _game.Init();
         }
 
-        await _game.MainLoop();
+        if (!mainLoop.IsCompleted) // Called from another event!
+        {
+            Console.WriteLine(new System.Diagnostics.StackTrace());
+            return;
+        }
+
+        mainLoop = _game.MainLoop();
+        await mainLoop;
 
         StateHasChanged();
+    }
+
+    protected override bool ShouldRender()
+    {
+        return mainLoop.IsCompleted;
     }
 
     public void Dispose()
