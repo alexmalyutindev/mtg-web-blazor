@@ -3,11 +3,10 @@ using System.Numerics;
 using Blazor.Extensions.Canvas.WebGL;
 using MtgWeb.Core.Physics;
 using MtgWeb.Core.Render;
-using Newtonsoft.Json;
 
 namespace MtgWeb.Core;
 
-public class Game
+public class Game : IDisposable
 {
     private readonly WebGLContext _context;
     private readonly PhysicsWorld _physicsWorld;
@@ -123,6 +122,11 @@ public class Game
                 await _context.DrawElementsAsync(Primitive.TRIANGLES, _cube.Indices.Length, DataType.UNSIGNED_SHORT, 0);
             }
         }
+    }
+
+    public void Dispose()
+    {
+        _physicsWorld.Dispose();
     }
 }
 
