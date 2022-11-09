@@ -45,24 +45,57 @@ public class Game
 
         Input.Update();
         await Update();
+        Input.LateUpdate();
         await Render();
 
         _stopwatch.Stop();
 
         if (_stopwatch.ElapsedMilliseconds < 32)
+        {
             await Task.Delay(32 - (int) _stopwatch.ElapsedMilliseconds);
+        }
     }
+
+    private float _playerHeight = 1f;
+    private float _velocityY = 0;
+    private bool _grounded = false;
 
     private async Task Update()
     {
-        var axis = Input.Axis * Time.DeltaTime;
+        var axis = Input.Axis;
         if (axis.Y != 0 || axis.X != 0)
         {
+            axis = Vector2.Normalize(axis);
+            var shift = Input.GetKeyState(KeyCode.Shift);
+            if (shift is ButtonState.Press or ButtonState.Down)
+                axis *= 2;
+
+            axis *= Time.DeltaTime;
             _camera.Transform.Position -= _camera.Transform.Forward * axis.Y; // TODO: Investigate negation of Forward.
-            _camera.Transform.Position += _camera.Transform.Right * axis.X; 
+            _camera.Transform.Position += _camera.Transform.Right * axis.X;
         }
 
         _camera.Transform.Rotation += new Vector3(0, Input.MouseDelta.X * Time.DeltaTime * 5f, 0);
+
+        if (!_grounded && _camera.Transform.Position.Y >= _playerHeight)
+        {
+            _camera.Transform.Position += Vector3.UnitY * _velocityY * Time.DeltaTime;
+            _velocityY -= 9.81f * Time.DeltaTime;
+        }
+        else
+        {
+            _grounded = true;
+            _velocityY = 0;
+            _camera.Transform.Position = _camera.Transform.Position with {Y = _playerHeight};
+        }
+
+        Console.WriteLine(Input.GetKeyState(KeyCode.Space));
+
+        if (Input.GetKeyState(KeyCode.Space) == ButtonState.Down)
+        {
+            _grounded = false;
+            _velocityY = 5;
+        }
     }
 
     private async Task Render()

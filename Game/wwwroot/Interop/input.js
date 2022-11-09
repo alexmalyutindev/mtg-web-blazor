@@ -4,8 +4,8 @@ window.BindInput = function (bridge) {
         mousedown : (e) => bridge.invokeMethodAsync("OnMouseDown", e.button),
         mouseup : (e) => bridge.invokeMethodAsync("OnMouseUp", e.button),
         mousemove : (e) => bridge.invokeMethodAsync("OnMouseMove", e.x, e.y, e.movementX, e.movementY),
-        keydown : (e) => bridge.invokeMethodAsync("OnKeyDown", e.key),
-        keyup : (e) => bridge.invokeMethodAsync("OnKeyUp", e.key)
+        keydown : (e) => bridge.invokeMethodAsync("OnKeyDown", e.keyCode),
+        keyup : (e) => bridge.invokeMethodAsync("OnKeyUp", e.keyCode)
     }
 
     window.addEventListener("mousedown", inputListener.mousedown);
