@@ -1,8 +1,7 @@
-using System.Numerics;
-using BepuPhysics;
-using BepuPhysics.Collidables;
+using System.ComponentModel;
+using System.Text.Json.Serialization;
 using MtgWeb.Core.Physics;
-using Newtonsoft.Json;
+using MtgWeb.Core.Render;
 
 namespace MtgWeb.Core;
 
@@ -11,30 +10,15 @@ public class Entity
     public String Name = "New Entity";
     public readonly Transform Transform = new();
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public MeshType MeshType;
+
     public RigidBody RigidBody;
     public StaticBody StaticBody;
 }
 
-public class RigidBody
+public enum MeshType
 {
-    public bool IsStatic = false;
-
-    public RigidPose Pose = RigidPose.Identity;
-    public BodyVelocity Velocity;
-    public Collidable Collidable;
-
-    public BodyDescription Body;
-    public BodyHandle BodyHandle;
-    public IShape[] Shapes;
-    public IShape Shape;
-}
-
-public class StaticBody
-{
-    public Vector3 Offset;
-    public StaticDescription Description;
-    [JsonConverter(typeof(ShapeConverter))]
-
-    public IShape Shape;
-    public TypedIndex ShapeId;
+    Cube = 0,
+    Quad = 1,
 }

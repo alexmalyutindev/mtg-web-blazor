@@ -19,5 +19,5 @@ void main(void) {
     );
     vec2 uv = v_Texcoord.xy * scaleXY * 2.0;
     float checker = checkers(uv);
-    gl_FragColor = mix(vec4(.2, .2, .2, 1.0), vec4(.9, .9, .9, 1.0), checker);
+    gl_FragColor = mix(vec4(.2, .2, .2, 1.0), vec4(.7, .7, .7, 1.0), checker);
 }

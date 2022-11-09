@@ -18,13 +18,15 @@ public class Game
 
     // Temp
     private Camera? _camera;
+    private PlayerController _player;
     private readonly Mesh _quad = Mesh.Quad();
+    private readonly Mesh _cube = Mesh.Cube();
     private Shader? _checkerShader;
 
     public Game(WebGLContext context)
     {
         _context = context;
-        _physicsWorld = new PhysicsWorld();
+        // _physicsWorld = new PhysicsWorld();
 
         _stopwatch = new Stopwatch();
     }
@@ -40,14 +42,17 @@ public class Game
                 Position = new Vector3(0.0f, 1f, 5f)
             }
         };
+        _player = new PlayerController(_camera);
+
         await _quad.Init(_context);
+        await _cube.Init(_context);
         _checkerShader = await Shader.Load(_context, "Checker");
     }
 
     private async Task LoadScene(string name)
     {
         _currentScene = await Resources.LoadScene(name);
-        _physicsWorld.Add(_currentScene);
+        // _physicsWorld.Add(_currentScene);
     }
 
     public async Task MainLoop()
@@ -55,7 +60,7 @@ public class Game
         Time.Tick(0.032f);
         _stopwatch.Restart();
 
-        _physicsWorld.Simulation.Timestep(0.032f);
+        // _physicsWorld.Simulation.Timestep(0.032f);
 
         Input.Update();
         await Update();
@@ -70,46 +75,9 @@ public class Game
         }
     }
 
-    private float _playerHeight = 1f;
-    private float _velocityY = 0;
-    private bool _grounded = false;
-
     private async Task Update()
     {
-        var axis = Input.Axis;
-        if (axis.Y != 0 || axis.X != 0)
-        {
-            axis = Vector2.Normalize(axis);
-            var shift = Input.GetKeyState(KeyCode.Shift);
-            if (shift is ButtonState.Press or ButtonState.Down)
-                axis *= 2;
-
-            axis *= Time.DeltaTime;
-            _camera.Transform.Position -= _camera.Transform.Forward * axis.Y; // TODO: Investigate negation of Forward.
-            _camera.Transform.Position += _camera.Transform.Right * axis.X;
-        }
-
-        _camera.Transform.Rotation += new Vector3(0, Input.MouseDelta.X * Time.DeltaTime * 5f, 0);
-
-        if (!_grounded && _camera.Transform.Position.Y >= _playerHeight)
-        {
-            _camera.Transform.Position += Vector3.UnitY * _velocityY * Time.DeltaTime;
-            _velocityY -= 9.81f * Time.DeltaTime;
-        }
-        else
-        {
-            _grounded = true;
-            _velocityY = 0;
-            _camera.Transform.Position = _camera.Transform.Position with {Y = _playerHeight};
-        }
-
-        Console.WriteLine(Input.GetKeyState(KeyCode.Space));
-
-        if (Input.GetKeyState(KeyCode.Space) == ButtonState.Down)
-        {
-            _grounded = false;
-            _velocityY = 5;
-        }
+        _player.Update();
     }
 
     private async Task Render()
@@ -139,8 +107,80 @@ public class Game
         await _quad.Bind(_context, _checkerShader);
         foreach (var entity in _currentScene.Root)
         {
-            await _context.UniformMatrixAsync(_checkerShader.ObjectToWorld, false, entity.Transform.Matrix);
-            await _context.DrawElementsAsync(Primitive.TRIANGLES, _quad.Indices.Length, DataType.UNSIGNED_SHORT, 0);
+            if (entity.MeshType == MeshType.Quad)
+            {
+                await _context.UniformMatrixAsync(_checkerShader.ObjectToWorld, false, entity.Transform.Matrix);
+                await _context.DrawElementsAsync(Primitive.TRIANGLES, _quad.Indices.Length, DataType.UNSIGNED_SHORT, 0);
+            }
         }
+
+        await _cube.Bind(_context, _checkerShader);
+        foreach (var entity in _currentScene.Root)
+        {
+            if (entity.MeshType == MeshType.Cube)
+            {
+                await _context.UniformMatrixAsync(_checkerShader.ObjectToWorld, false, entity.Transform.Matrix);
+                await _context.DrawElementsAsync(Primitive.TRIANGLES, _cube.Indices.Length, DataType.UNSIGNED_SHORT, 0);
+            }
+        }
+    }
+}
+
+public class PlayerController
+{
+    private readonly Camera _camera;
+    private bool _grounded;
+    private float _playerHeight = 1.75f;
+    private float _velocityY;
+
+    private float _moveSpeed = 1.5f;
+    private float _sprintSpeed = 3.5f;
+
+    public PlayerController(Camera camera)
+    {
+        _camera = camera;
+    }
+
+    public void Update()
+    {
+        var axis = Input.Axis;
+        if (axis.Y != 0 || axis.X != 0)
+        {
+            var movement =
+                Vector2.Normalize(axis) *
+                (IsSprinting() ? _sprintSpeed : _moveSpeed) *
+                Time.DeltaTime;
+
+            // TODO: Investigate negation of Forward.
+            _camera.Transform.Position -= _camera.Transform.Forward * movement.Y; 
+            _camera.Transform.Position += _camera.Transform.Right * movement.X;
+        }
+
+        _camera.Transform.Rotation += new Vector3(0, Input.MouseDelta.X * Time.DeltaTime * 5f, 0);
+
+        if (!_grounded && _camera.Transform.Position.Y >= _playerHeight)
+        {
+            _camera.Transform.Position += Vector3.UnitY * _velocityY * Time.DeltaTime;
+            _velocityY -= 9.81f * Time.DeltaTime;
+        }
+        else
+        {
+            _grounded = true;
+            _velocityY = 0;
+            _camera.Transform.Position = _camera.Transform.Position with {Y = _playerHeight};
+        }
+
+        if (Input.GetKeyState(KeyCode.Space) == ButtonState.Down)
+        {
+            _grounded = false;
+            _velocityY = 5;
+        }
+    }
+
+    private static bool IsSprinting()
+    {
+        var shift = Input.GetKeyState(KeyCode.Shift);
+        var isSprinting = shift is ButtonState.Press or ButtonState.Down;
+        return isSprinting;
     }
 }

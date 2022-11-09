@@ -26,9 +26,9 @@ public class Transform
     }
     
     public Quaternion Quaternion => Quaternion.CreateFromYawPitchRoll(
-        _rotation.Y * DEG_TO_RAD,
-        _rotation.X * DEG_TO_RAD,
-        _rotation.Z * DEG_TO_RAD
+        _rotation.Y * Math.DEG_TO_RAD,
+        _rotation.X * Math.DEG_TO_RAD,
+        _rotation.Z * Math.DEG_TO_RAD
     );
 
     public Vector3 Scale
@@ -47,7 +47,6 @@ public class Transform
 
     public bool UpdateViewMatrix;
 
-    private const float DEG_TO_RAD = 0.017453292519943295769236907684886f;
     private const int TRANSLATION_X = 12, TRANSLATION_Y = 13, TRANSLATION_Z = 14;
 
     private const int RIGHT_X = 0, RIGHT_Y = 4, RIGHT_Z = 8;
@@ -94,9 +93,9 @@ public class Transform
         var translation = Matrix4x4.CreateTranslation(_position);
         var scale = Matrix4x4.CreateScale(_scale);
         var quaternion = Quaternion.CreateFromYawPitchRoll(
-            _rotation.Y * DEG_TO_RAD,
-            _rotation.X * DEG_TO_RAD,
-            _rotation.Z * DEG_TO_RAD
+            _rotation.Y * Math.DEG_TO_RAD,
+            _rotation.X * Math.DEG_TO_RAD,
+            _rotation.Z * Math.DEG_TO_RAD
         );
 
         var transform = translation;

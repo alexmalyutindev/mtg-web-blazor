@@ -17,10 +17,11 @@ public class Camera
     public float AspectRatio = 800f / 600f;
     public float NearPlane = 0.01f;
     public float FarPlane = 100f;
+    public float FieldOfView { get; set; } = 60f;
 
     public Camera()
     {
-        Matrix4x4.CreatePerspectiveFieldOfView(1.5f, AspectRatio, NearPlane, FarPlane)
+        Matrix4x4.CreatePerspectiveFieldOfView(FieldOfView * Math.DEG_TO_RAD, AspectRatio, NearPlane, FarPlane)
             .ToArray(in Projection);
     }
 }
