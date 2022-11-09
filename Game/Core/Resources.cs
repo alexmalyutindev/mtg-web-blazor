@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace MtgWeb.Core;
 
@@ -14,7 +15,10 @@ public class Resources
     public static async Task<Scene> LoadScene(String name)
     {
         var json = await _httpClient.GetStringAsync($"Resources/{name}.json");
-        var scene = JsonConvert.DeserializeObject<Scene>(json);
+        var scene = JsonConvert.DeserializeObject<Scene>(json, new JsonSerializerSettings()
+        {
+            TypeNameHandling = TypeNameHandling.Auto
+        });
         return scene;
     }
     

@@ -1,8 +1,12 @@
 using System.Diagnostics;
 using System.Numerics;
+using BepuPhysics;
+using BepuPhysics.Collidables;
 using Blazor.Extensions.Canvas.WebGL;
 using MtgWeb.Core.Physics;
 using MtgWeb.Core.Render;
+using Newtonsoft.Json;
+using Mesh = MtgWeb.Core.Render.Mesh;
 
 namespace MtgWeb.Core;
 
@@ -34,14 +38,8 @@ public class Game : IDisposable
     {
         await LoadScene("Scene");
 
-        _camera = new Camera()
-        {
-            Transform =
-            {
-                Position = new Vector3(0.0f, 1f, 5f)
-            }
-        };
-        _player = new PlayerController(_camera);
+        var _playerEntity = _currentScene.Root.First(entity => entity.Name.Contains("Player"));
+        _camera = _playerEntity.Components.OfType<Camera>().First();
 
         await _quad.Init(_context);
         await _cube.Init(_context);
@@ -52,6 +50,17 @@ public class Game : IDisposable
     {
         _currentScene = await Resources.LoadScene(name);
         _physicsWorld.Add(_currentScene);
+        
+        foreach (var entity in _currentScene.Root)
+        {
+            entity.BindHierarchy();
+            entity.InitComponents();
+        }
+        
+        foreach (var entity in _currentScene.Root)
+        {
+            entity.StartComponents();
+        }
     }
 
     public async Task MainLoop()
@@ -76,12 +85,15 @@ public class Game : IDisposable
 
     private async Task Update()
     {
-        _player.Update();
+        foreach (var entity in _currentScene.Root)
+        {
+            entity.UpdateComponents();
+        }
     }
 
     private async Task Render()
     {
-        _camera.Transform.Update();
+        // _camera.Transform.Update();
 
         foreach (var entity in _currentScene.Root)
         {
@@ -100,7 +112,7 @@ public class Game : IDisposable
         await _checkerShader.Bind(_context);
 
         await _context.UniformAsync(_checkerShader.Time, Time.CurrentTime);
-        await _context.UniformMatrixAsync(_checkerShader.WorldToView, false, _camera.WorldToView);
+        await _context.UniformMatrixAsync(_checkerShader.WorldToView, false, _camera.Entity.Transform.WorldToView);
         await _context.UniformMatrixAsync(_checkerShader.Projection, false, _camera.Projection);
 
         await _quad.Bind(_context, _checkerShader);
@@ -127,64 +139,5 @@ public class Game : IDisposable
     public void Dispose()
     {
         _physicsWorld.Dispose();
-    }
-}
-
-public class PlayerController
-{
-    private readonly Camera _camera;
-    private bool _grounded;
-    private float _playerHeight = 1.75f;
-    private float _velocityY;
-
-    private float _moveSpeed = 1.5f;
-    private float _sprintSpeed = 3.5f;
-
-    public PlayerController(Camera camera)
-    {
-        _camera = camera;
-    }
-
-    public void Update()
-    {
-        var axis = Input.Axis;
-        if (axis.Y != 0 || axis.X != 0)
-        {
-            var movement =
-                Vector2.Normalize(axis) *
-                (IsSprinting() ? _sprintSpeed : _moveSpeed) *
-                Time.DeltaTime;
-
-            // TODO: Investigate negation of Forward.
-            _camera.Transform.Position -= _camera.Transform.Forward * movement.Y; 
-            _camera.Transform.Position += _camera.Transform.Right * movement.X;
-        }
-
-        _camera.Transform.Rotation += new Vector3(0, Input.MouseDelta.X * Time.DeltaTime * 5f, 0);
-
-        if (!_grounded && _camera.Transform.Position.Y >= _playerHeight)
-        {
-            _camera.Transform.Position += Vector3.UnitY * _velocityY * Time.DeltaTime;
-            _velocityY -= 9.81f * Time.DeltaTime;
-        }
-        else
-        {
-            _grounded = true;
-            _velocityY = 0;
-            _camera.Transform.Position = _camera.Transform.Position with {Y = _playerHeight};
-        }
-
-        if (Input.GetKeyState(KeyCode.Space) == ButtonState.Down)
-        {
-            _grounded = false;
-            _velocityY = 5;
-        }
-    }
-
-    private static bool IsSprinting()
-    {
-        var shift = Input.GetKeyState(KeyCode.Shift);
-        var isSprinting = shift is ButtonState.Press or ButtonState.Down;
-        return isSprinting;
     }
 }

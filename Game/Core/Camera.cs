@@ -3,7 +3,7 @@ using MtgWeb.Core.Utils;
 
 namespace MtgWeb.Core;
 
-public class Camera
+public class Camera : Component
 {
     public readonly Transform Transform = new()
     {
@@ -23,5 +23,10 @@ public class Camera
     {
         Matrix4x4.CreatePerspectiveFieldOfView(FieldOfView * Math.DEG_TO_RAD, AspectRatio, NearPlane, FarPlane)
             .ToArray(in Projection);
+    }
+
+    public override void Start()
+    {
+        Entity.Transform.UpdateViewMatrix = true;
     }
 }
