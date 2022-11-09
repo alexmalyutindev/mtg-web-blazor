@@ -9,6 +9,9 @@ namespace MtgWeb.Pages;
 
 public partial class MainView : ComponentBase, IDisposable
 {
+    public const int Width = 1280;
+    public const int Height = 720;
+
     [Inject] private IJSRuntime _runtime { get; set; }
     [Inject] private HttpClient _HttpClient { get; set; }
 

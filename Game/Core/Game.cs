@@ -1,11 +1,8 @@
 using System.Diagnostics;
-using System.Numerics;
-using BepuPhysics;
-using BepuPhysics.Collidables;
 using Blazor.Extensions.Canvas.WebGL;
 using MtgWeb.Core.Physics;
 using MtgWeb.Core.Render;
-using Newtonsoft.Json;
+using MtgWeb.Pages;
 using Mesh = MtgWeb.Core.Render.Mesh;
 
 namespace MtgWeb.Core;
@@ -107,7 +104,7 @@ public class Game : IDisposable
         await _context.ClearColorAsync(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W);
         await _context.ClearAsync(BufferBits.COLOR_BUFFER_BIT);
 
-        await _context.ViewportAsync(0, 0, 800, 600);
+        await _context.ViewportAsync(0, 0, MainView.Width, MainView.Height);
 
         await _checkerShader.Bind(_context);
 

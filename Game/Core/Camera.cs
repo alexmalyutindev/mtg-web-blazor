@@ -1,5 +1,6 @@
 using System.Numerics;
 using MtgWeb.Core.Utils;
+using MtgWeb.Pages;
 
 namespace MtgWeb.Core;
 
@@ -14,7 +15,7 @@ public class Camera : Component
 
     public Vector4 ClearColor = new(0.8f, 0.8f, 0.8f, 1);
     
-    public float AspectRatio = 800f / 600f;
+    public float AspectRatio = (float) MainView.Width / MainView.Height;
     public float NearPlane = 0.01f;
     public float FarPlane = 100f;
     public float FieldOfView { get; set; } = 60f;

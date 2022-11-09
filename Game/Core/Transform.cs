@@ -22,14 +22,24 @@ public class Transform
         {
             _hasChanged = true;
             _rotation = value;
+            _quaternion = Quaternion.CreateFromYawPitchRoll(
+                _rotation.Y * Math.DEG_TO_RAD,
+                _rotation.X * Math.DEG_TO_RAD,
+                _rotation.Z * Math.DEG_TO_RAD
+            );
         }
     }
     
-    public Quaternion Quaternion => Quaternion.CreateFromYawPitchRoll(
-        _rotation.Y * Math.DEG_TO_RAD,
-        _rotation.X * Math.DEG_TO_RAD,
-        _rotation.Z * Math.DEG_TO_RAD
-    );
+    public Quaternion Quaternion
+    {
+        get => _quaternion;
+        set
+        {
+            _hasChanged = true;
+            _quaternion = value;
+            _rotation = _quaternion.ToEuler();
+        }
+    }
 
     public Vector3 Scale
     {
@@ -82,6 +92,7 @@ public class Transform
 
     private Vector3 _position = Vector3.Zero;
     private Vector3 _rotation = Vector3.Zero;
+    private Quaternion _quaternion = Quaternion.Identity;
     private Vector3 _scale = Vector3.One;
 
     public void Update()
@@ -92,11 +103,12 @@ public class Transform
         _hasChanged = false;
         var translation = Matrix4x4.CreateTranslation(_position);
         var scale = Matrix4x4.CreateScale(_scale);
-        var quaternion = Quaternion.CreateFromYawPitchRoll(
-            _rotation.Y * Math.DEG_TO_RAD,
-            _rotation.X * Math.DEG_TO_RAD,
-            _rotation.Z * Math.DEG_TO_RAD
-        );
+        var quaternion = Quaternion; 
+        // Quaternion.CreateFromYawPitchRoll(
+        //     _rotation.Y * Math.DEG_TO_RAD,
+        //     _rotation.X * Math.DEG_TO_RAD,
+        //     _rotation.Z * Math.DEG_TO_RAD
+        // );
 
         var transform = translation;
         transform = Matrix4x4.Transform(transform, quaternion);
