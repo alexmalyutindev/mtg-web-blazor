@@ -26,7 +26,7 @@ public class Game
     public Game(WebGLContext context)
     {
         _context = context;
-        // _physicsWorld = new PhysicsWorld();
+        _physicsWorld = new PhysicsWorld();
 
         _stopwatch = new Stopwatch();
     }
@@ -52,7 +52,7 @@ public class Game
     private async Task LoadScene(string name)
     {
         _currentScene = await Resources.LoadScene(name);
-        // _physicsWorld.Add(_currentScene);
+        _physicsWorld.Add(_currentScene);
     }
 
     public async Task MainLoop()
@@ -60,7 +60,7 @@ public class Game
         Time.Tick(0.032f);
         _stopwatch.Restart();
 
-        // _physicsWorld.Simulation.Timestep(0.032f);
+        _physicsWorld.Simulation.Timestep(0.032f);
 
         Input.Update();
         await Update();

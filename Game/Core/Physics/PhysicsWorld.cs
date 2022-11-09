@@ -15,8 +15,8 @@ public class PhysicsWorld : IDisposable
         _bufferPool = new BufferPool();
         Simulation = Simulation.Create(
             _bufferPool,
-            new NarrowPhaseCallbacks(),
-            new PoseIntegratorCallbacks(),
+            new DemoNarrowPhaseCallbacks(),
+            new DemoPoseIntegratorCallbacks(-9.81f * Vector3.UnitY),
             new SolveDescription(8, 1)
         );
     }
