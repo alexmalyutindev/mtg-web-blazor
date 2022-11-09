@@ -24,6 +24,12 @@ public class Transform
             _rotation = value;
         }
     }
+    
+    public Quaternion Quaternion => Quaternion.CreateFromYawPitchRoll(
+        _rotation.Y * DEG_TO_RAD,
+        _rotation.X * DEG_TO_RAD,
+        _rotation.Z * DEG_TO_RAD
+    );
 
     public Vector3 Scale
     {

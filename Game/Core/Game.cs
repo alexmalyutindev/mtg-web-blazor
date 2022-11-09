@@ -1,13 +1,17 @@
 using System.Diagnostics;
 using System.Numerics;
 using Blazor.Extensions.Canvas.WebGL;
+using MtgWeb.Core.Physics;
 using MtgWeb.Core.Render;
+using Newtonsoft.Json;
 
 namespace MtgWeb.Core;
 
 public class Game
 {
     private readonly WebGLContext _context;
+    private readonly PhysicsWorld _physicsWorld;
+
     private Scene? _currentScene;
 
     private Stopwatch _stopwatch;
@@ -20,12 +24,14 @@ public class Game
     public Game(WebGLContext context)
     {
         _context = context;
+        _physicsWorld = new PhysicsWorld();
+
         _stopwatch = new Stopwatch();
     }
 
     public async Task Init()
     {
-        _currentScene = await Resources.LoadScene("Scene");
+        await LoadScene("Scene");
 
         _camera = new Camera()
         {
@@ -38,10 +44,18 @@ public class Game
         _checkerShader = await Shader.Load(_context, "Checker");
     }
 
+    private async Task LoadScene(string name)
+    {
+        _currentScene = await Resources.LoadScene(name);
+        _physicsWorld.Add(_currentScene);
+    }
+
     public async Task MainLoop()
     {
         Time.Tick(0.032f);
         _stopwatch.Restart();
+
+        _physicsWorld.Simulation.Timestep(0.032f);
 
         Input.Update();
         await Update();
