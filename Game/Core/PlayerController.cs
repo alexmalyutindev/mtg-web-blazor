@@ -34,15 +34,17 @@ public class PlayerController : Component
             Entity.Transform.Position += Entity.Transform.Right * movement.X;
         }
 
-        // Entity.Transform.Rotation += new Vector3(0, Input.MouseDelta.X * Time.DeltaTime * 5f, 0);
-        float lookSpeed = Math.DEG_TO_RAD * Time.DeltaTime * 5f;
-        // Entity.Transform.Update();
-        Entity.Transform.Quaternion *= Quaternion.CreateFromAxisAngle(
-            Entity.Transform.Right,
-            Input.MouseDelta.Y * lookSpeed
-        );
-        Entity.Transform.Quaternion *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, Input.MouseDelta.X * lookSpeed);
-        Entity.Transform.Quaternion = Quaternion.Normalize(Entity.Transform.Quaternion);
+        if (Input.MouseDelta.X != 0 || Input.MouseDelta.Y != 0)
+        {
+            float lookSpeed = Math.DEG_TO_RAD * Time.DeltaTime * 5f;
+            Entity.Transform.Quaternion *= Quaternion.CreateFromAxisAngle(
+                Entity.Transform.Right,
+                Input.MouseDelta.Y * lookSpeed
+            );
+            Entity.Transform.Quaternion *=
+                Quaternion.CreateFromAxisAngle(Vector3.UnitY, Input.MouseDelta.X * lookSpeed);
+            Entity.Transform.Quaternion = Quaternion.Normalize(Entity.Transform.Quaternion);
+        }
 
         if (!_grounded)
         {

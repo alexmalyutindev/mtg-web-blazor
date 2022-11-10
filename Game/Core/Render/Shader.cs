@@ -4,6 +4,8 @@ namespace MtgWeb.Core.Render;
 
 public class Shader
 {
+    public bool DepthTest = true;
+    
     public uint PositionOS { get; private set; }
     public uint Texcoord { get; private set; }
 

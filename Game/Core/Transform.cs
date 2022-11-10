@@ -5,12 +5,14 @@ namespace MtgWeb.Core;
 
 public class Transform
 {
+    public bool WasChanged { get; private set; } = false;
+
     public Vector3 Position
     {
         get => _position;
         set
         {
-            _hasChanged = true;
+            _isDirty = true;
             _position = value;
         }
     }
@@ -20,7 +22,7 @@ public class Transform
         get => _rotation;
         set
         {
-            _hasChanged = true;
+            _isDirty = true;
             _rotation = value;
             _quaternion = Quaternion.CreateFromYawPitchRoll(
                 _rotation.Y * Math.DEG_TO_RAD,
@@ -29,13 +31,13 @@ public class Transform
             );
         }
     }
-    
+
     public Quaternion Quaternion
     {
         get => _quaternion;
         set
         {
-            _hasChanged = true;
+            _isDirty = true;
             _quaternion = value;
             _rotation = _quaternion.ToEuler();
         }
@@ -46,7 +48,7 @@ public class Transform
         get => _scale;
         set
         {
-            _hasChanged = true;
+            _isDirty = true;
             _scale = value;
         }
     }
@@ -54,8 +56,6 @@ public class Transform
     public Vector3 Forward => new Vector3(Matrix[FORWARD_X], Matrix[FORWARD_Y], Matrix[FORWARD_Z]);
     public Vector3 Right => new Vector3(Matrix[RIGHT_X], Matrix[RIGHT_Y], Matrix[RIGHT_Z]);
     public Vector3 Up => new Vector3(Matrix[UP_X], Matrix[UP_Y], Matrix[UP_Z]);
-
-    public bool UpdateViewMatrix;
 
     private const int TRANSLATION_X = 12, TRANSLATION_Y = 13, TRANSLATION_Z = 14;
 
@@ -79,16 +79,7 @@ public class Transform
         0, 0, 0, 1,
     };
 
-    // Updated only if UpdateViewMatrix is set to true.
-    public float[] WorldToView = new float[16]
-    {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1,
-    };
-
-    private bool _hasChanged = true;
+    private bool _isDirty = true;
 
     private Vector3 _position = Vector3.Zero;
     private Vector3 _rotation = Vector3.Zero;
@@ -97,35 +88,26 @@ public class Transform
 
     public void Update()
     {
-        if (!_hasChanged)
+        if (WasChanged)
+            WasChanged = false;
+        
+        if (!_isDirty)
             return;
 
-        _hasChanged = false;
+        _isDirty = false;
         var translation = Matrix4x4.CreateTranslation(_position);
         var scale = Matrix4x4.CreateScale(_scale);
-        var quaternion = Quaternion; 
-        // Quaternion.CreateFromYawPitchRoll(
-        //     _rotation.Y * Math.DEG_TO_RAD,
-        //     _rotation.X * Math.DEG_TO_RAD,
-        //     _rotation.Z * Math.DEG_TO_RAD
-        // );
+        var quaternion = _quaternion;
 
         var transform = translation;
         transform = Matrix4x4.Transform(transform, quaternion);
-
-        if (UpdateViewMatrix)
-        {
-            // WorldToView is Rotation * InvTranslation
-            transform.ToArray(in WorldToView);
-            WorldToView[TRANSLATION_X] = -WorldToView[TRANSLATION_X];
-            WorldToView[TRANSLATION_Y] = -WorldToView[TRANSLATION_Y];
-            WorldToView[TRANSLATION_Z] = -WorldToView[TRANSLATION_Z];
-        }
 
         transform = scale * transform;
         transform.ToArray(in Matrix);
 
         Matrix4x4.Invert(transform, out transform);
         transform.ToArray(in InvMatrix);
+
+        WasChanged = true;
     }
 }

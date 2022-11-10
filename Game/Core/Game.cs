@@ -62,10 +62,11 @@ public class Game : IDisposable
 
     public async Task MainLoop()
     {
-        Time.Tick(0.032f);
+        Time.StartFrame(1.0f / 60f);
         _stopwatch.Restart();
 
-        _physicsWorld.Simulation.Timestep(0.032f);
+        // TODO: Separate Physics loop
+        // _physicsWorld.Simulation.Timestep(1.0f / 60f);
 
         Input.Update();
         await Update();
@@ -73,10 +74,11 @@ public class Game : IDisposable
         await Render();
 
         _stopwatch.Stop();
+        Time.EndFrame(_stopwatch);
 
-        if (_stopwatch.ElapsedMilliseconds < 32)
+        if (_stopwatch.ElapsedMilliseconds < 1000f / 60f)
         {
-            await Task.Delay(32 - (int) _stopwatch.ElapsedMilliseconds);
+            await Task.Delay((int) (1000f / 60f - _stopwatch.ElapsedMilliseconds));
         }
     }
 
@@ -97,19 +99,19 @@ public class Game : IDisposable
             entity.Transform.Update();
         }
 
-        await _context.DisableAsync(EnableCap.CULL_FACE);
-        await _context.EnableAsync(EnableCap.DEPTH_TEST);
-
         var clearColor = _camera.ClearColor;
         await _context.ClearColorAsync(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W);
         await _context.ClearAsync(BufferBits.COLOR_BUFFER_BIT);
-
         await _context.ViewportAsync(0, 0, MainView.Width, MainView.Height);
 
+
         await _checkerShader.Bind(_context);
+        
+        await _context.DisableAsync(EnableCap.CULL_FACE);
+        await _context.EnableAsync(EnableCap.DEPTH_TEST);
 
         await _context.UniformAsync(_checkerShader.Time, Time.CurrentTime);
-        await _context.UniformMatrixAsync(_checkerShader.WorldToView, false, _camera.Entity.Transform.WorldToView);
+        await _context.UniformMatrixAsync(_checkerShader.WorldToView, false, _camera.WorldToView);
         await _context.UniformMatrixAsync(_checkerShader.Projection, false, _camera.Projection);
 
         await _quad.Bind(_context, _checkerShader);
