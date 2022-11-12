@@ -18,10 +18,8 @@ public class Game : IDisposable
 
     // Temp
     private Camera? _camera;
-    private PlayerController _player;
     private readonly Mesh _quad = Mesh.Quad();
     private readonly Mesh _cube = Mesh.Cube();
-    private Shader? _checkerShader;
 
     public Game(WebGLContext context)
     {
@@ -35,25 +33,26 @@ public class Game : IDisposable
     {
         await LoadScene("Scene");
 
-        var _playerEntity = _currentScene.Root.First(entity => entity.Name.Contains("Player"));
-        _camera = _playerEntity.Components.OfType<Camera>().First();
+        _currentScene.Root
+            .First(entity => entity.Name.Contains("Player"))
+            .TryGetComponent(out _camera);
 
         await _quad.Init(_context);
         await _cube.Init(_context);
-        _checkerShader = await Shader.Load(_context, "Checker");
     }
 
     private async Task LoadScene(string name)
     {
         _currentScene = await Resources.LoadScene(name);
+        await Shader.CompileAll(_context);
         _physicsWorld.Add(_currentScene);
-        
+
         foreach (var entity in _currentScene.Root)
         {
             entity.BindHierarchy();
             entity.InitComponents();
         }
-        
+
         foreach (var entity in _currentScene.Root)
         {
             entity.StartComponents();
@@ -90,48 +89,111 @@ public class Game : IDisposable
         }
     }
 
+
+    struct RenderData : IComparable<RenderData>
+    {
+        public Entity Entity;
+        public Mesh Mesh;
+        public Shader? Shader;
+
+        public void Deconstruct(out Entity entity, out Mesh mesh, out Shader? shader)
+        {
+            entity = Entity;
+            mesh = Mesh;
+            shader = Shader;
+        }
+
+        public int CompareTo(RenderData other)
+        {
+            return Shader.Name.Length - other.Shader.Name.Length;
+        }
+    }
+
+    private RenderData[] _renderData = new RenderData[256];
+
     private async Task Render()
     {
-        // _camera.Transform.Update();
-
         foreach (var entity in _currentScene.Root)
         {
             entity.Transform.Update();
         }
 
         var clearColor = _camera.ClearColor;
+        await _context.ViewportAsync(0, 0, MainView.Width, MainView.Height);
         await _context.ClearColorAsync(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W);
         await _context.ClearAsync(BufferBits.COLOR_BUFFER_BIT);
-        await _context.ViewportAsync(0, 0, MainView.Width, MainView.Height);
 
-
-        await _checkerShader.Bind(_context);
-        
         await _context.DisableAsync(EnableCap.CULL_FACE);
         await _context.EnableAsync(EnableCap.DEPTH_TEST);
 
-        await _context.UniformAsync(_checkerShader.Time, Time.CurrentTime);
-        await _context.UniformMatrixAsync(_checkerShader.WorldToView, false, _camera.WorldToView);
-        await _context.UniformMatrixAsync(_checkerShader.Projection, false, _camera.Projection);
-
-        await _quad.Bind(_context, _checkerShader);
+        var _renderesCount = 0;
         foreach (var entity in _currentScene.Root)
         {
-            if (entity.MeshType == MeshType.Quad)
+            if (entity.TryGetComponents<Renderer>(out var renderers))
             {
-                await _context.UniformMatrixAsync(_checkerShader.ObjectToWorld, false, entity.Transform.Matrix);
-                await _context.DrawElementsAsync(Primitive.TRIANGLES, _quad.Indices.Length, DataType.UNSIGNED_SHORT, 0);
+                foreach (var renderer in renderers)
+                {
+                    var shader = renderer.Shader;
+                    if (shader == null)
+                        continue;
+
+
+                    if (renderer.MeshType == MeshType.None)
+                        continue;
+
+
+                    var mesh = renderer.MeshType switch
+                    {
+                        MeshType.Quad => _quad,
+                        MeshType.Cube => _cube,
+                        MeshType.None => null,
+                    };
+                    
+                    _renderData[_renderesCount].Entity = entity;
+                    _renderData[_renderesCount].Mesh = mesh;
+                    _renderData[_renderesCount].Shader = shader;
+                    _renderesCount++;
+                }
             }
         }
 
-        await _cube.Bind(_context, _checkerShader);
-        foreach (var entity in _currentScene.Root)
+        Array.Sort(_renderData, 0, _renderesCount);
+        Shader? _currentShader = default;
+        
+        for (int i = 0; i < _renderesCount; i++)
         {
-            if (entity.MeshType == MeshType.Cube)
+            var (entity, mesh, shader) = _renderData[i];
+
+
+            if (_currentShader != shader)
             {
-                await _context.UniformMatrixAsync(_checkerShader.ObjectToWorld, false, entity.Transform.Matrix);
-                await _context.DrawElementsAsync(Primitive.TRIANGLES, _cube.Indices.Length, DataType.UNSIGNED_SHORT, 0);
+                _currentShader = shader;
+                await shader.Bind(_context);
+
+                // Global uniforms.
+                await _context.UniformAsync(shader.Time, Time.CurrentTime);
+                await _context.UniformMatrixAsync(shader.WorldToView, false, _camera.WorldToView);
+                await _context.UniformMatrixAsync(shader.Projection, false, _camera.Projection);
+                var cameraPosition = _camera.Entity.Transform.Position;
+                await _context.UniformAsync(
+                    shader.CameraPositionWS,
+                    cameraPosition.X,
+                    cameraPosition.Y,
+                    cameraPosition.Z
+                );
             }
+
+            // Object specific.
+            await _context.UniformMatrixAsync(shader.ObjectToWorld, false, entity.Transform.Matrix);
+            await _context.UniformMatrixAsync(shader.InvObjectToWorld, false, entity.Transform.InvMatrix);
+
+            await mesh.Bind(_context, shader);
+            await _context.DrawElementsAsync(
+                Primitive.TRIANGLES,
+                mesh.Indices.Length,
+                DataType.UNSIGNED_SHORT,
+                0
+            );
         }
     }
 
