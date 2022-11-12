@@ -48,9 +48,8 @@ public partial class MainView : ComponentBase, IDisposable
 
             // First time request a loop on js side.
             await _runtime.InvokeVoidAsync("RequestAnimationFrame", _reference);
+            await _game.MainLoop();
         }
-
-        await _game.MainLoop();
     }
 
     protected override bool ShouldRender() => true;

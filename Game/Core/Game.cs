@@ -105,7 +105,7 @@ public class Game : IDisposable
 
         public int CompareTo(RenderData other)
         {
-            return Shader.Name.Length - other.Shader.Name.Length;
+            return Shader.Queue - other.Shader.Queue;
         }
     }
 
@@ -123,8 +123,9 @@ public class Game : IDisposable
         await _context.ClearColorAsync(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W);
         await _context.ClearAsync(BufferBits.COLOR_BUFFER_BIT);
 
-        await _context.DisableAsync(EnableCap.CULL_FACE);
+        await _context.EnableAsync(EnableCap.CULL_FACE);
         await _context.EnableAsync(EnableCap.DEPTH_TEST);
+        // await _context.EnableAsync(EnableCap.BLEND);
 
         var _renderesCount = 0;
         foreach (var entity in _currentScene.Root)

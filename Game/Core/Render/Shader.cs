@@ -5,7 +5,9 @@ namespace MtgWeb.Core.Render;
 
 public class Shader
 {
-    public string Name;
+    public readonly string Name;
+    public int Queue;
+
     public bool IsLoaded { get; private set; }
     public bool IsCompiled { get; private set; }
 

@@ -90,19 +90,16 @@ public class Transform
     {
         if (WasChanged)
             WasChanged = false;
-        
+
         if (!_isDirty)
             return;
 
         _isDirty = false;
         var translation = Matrix4x4.CreateTranslation(_position);
         var scale = Matrix4x4.CreateScale(_scale);
-        var quaternion = _quaternion;
+        var rotation = Matrix4x4.CreateFromQuaternion(_quaternion);
 
-        var transform = translation;
-        transform = Matrix4x4.Transform(transform, quaternion);
-
-        transform = scale * transform;
+        var transform = scale * rotation * translation;
         transform.ToArray(in Matrix);
 
         Matrix4x4.Invert(transform, out transform);

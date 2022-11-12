@@ -22,6 +22,12 @@ public class ShaderConverter : JsonConverter<Shader>
 
     public override void WriteJson(JsonWriter writer, Shader? value, JsonSerializer serializer) { }
 
+    private struct ShaderData
+    {
+        public string Name;
+        public int Queue;
+    }
+    
     public override Shader? ReadJson(
         JsonReader reader,
         Type objectType,
@@ -30,8 +36,9 @@ public class ShaderConverter : JsonConverter<Shader>
         JsonSerializer serializer
     )
     {
-        var name = serializer.Deserialize<string>(reader);
-        var shader = Shader.Create(name);
+        var data = serializer.Deserialize<ShaderData>(reader);
+        var shader = Shader.Create(data.Name);
+        shader.Queue = data.Queue;
 
         return shader;
     }
