@@ -5,15 +5,13 @@ uniform mat4 u_ObjectToWorld;
 uniform mat4 u_InvObjectToWorld;
 uniform mat4 u_WorldToView;
 uniform mat4 u_Projection;
-uniform vec3 u_CameraPostionWS;
+uniform vec3 u_CameraPositionWS;
 
 uniform vec3 u_MainLightDir;
 
-varying vec2 v_Texcoord;
-varying vec3 v_PositionWS;
 varying vec3 v_PositionOS;
-varying vec3 v_ViewDirWS;
-varying vec3 v_ViewDirOS;
+varying vec3 v_RayOrigin;
+varying vec3 v_RayDir;
 
 vec2 BoxIntersection(in vec3 ro, in vec3 rd, in vec3 rad, in float depth)
 {
@@ -27,7 +25,8 @@ vec2 BoxIntersection(in vec3 ro, in vec3 rd, in vec3 rad, in float depth)
     float tF = min(min(t2.x, t2.y), t2.z);
 
     // not visible (behind camera or behind dbuffer)
-    if (tF < 0.0 || tN > depth) return vec2(-1.0);
+    if (tF < 0.0 || tN > depth)
+    return vec2(-1.0);
 
     // clip integration segment from camera to dbuffer
     tN = max(tN, 0.0);
@@ -45,28 +44,31 @@ float boxDistance(in vec3 p, in vec3 rad)
 }
 
 float Sample(vec3 p) {
-    float d = boxDistance(p, vec3(0.5));
-    return clamp(-d, 0.0, 1.0);
+    return smoothstep(0.5, 0.6, 1.0 - length(p));
 }
 
-void main() {
-    const int steps = 5;
-    float stepSize = 1.0 / float(steps);
+vec4 Fragmet() {
+    const int steps = 10;
+    const float stepSize = 1.0 / float(steps);
 
     vec3 rayOrigin = v_PositionOS;
-    vec3 rayDirection = v_ViewDirOS;
+    vec3 rayDirection = normalize(v_RayDir);
 
     vec3 lightRay = vec3(0);
-    vec3 lightDir = -normalize(vec3(1, 1, 1)); // TODO: u_MainLightDir;
+    vec3 lightDir = normalize(vec3(1, 1, 1)); // TODO: u_MainLightDir;
     lightDir *= stepSize;
 
     vec2 boxIntersection = BoxIntersection(rayOrigin, rayDirection, vec3(0.5), 10.0);
-    rayDirection *= (boxIntersection.y - boxIntersection.x) * stepSize;
+    float depth = abs(boxIntersection.y - boxIntersection.x);
+    
+    rayDirection *= stepSize;
+
+//    return vec4(depth, depth, depth, 1.0);
 
     //Settings 
     float stepDensity = 5.0 * stepSize;
-    float shadowDensity = 10.0 * stepSize;
-    
+    float shadowDensity = 5.0 * stepSize;
+
     float currentDensity = 0.0;
     float lightEnergy = 0.0;
     float transmittance = 1.0;
@@ -74,29 +76,42 @@ void main() {
 
     float shadowDist = 0.0;
     float lightSample = 0.0;
-    
+
     for (int i = 0; i < steps; i++) {
         dencity = Sample(rayOrigin);
 
         if (dencity > 0.001)
-        { 
+        {
             lightRay = rayOrigin;
             shadowDist = 0.0;
-            for (int l = 0; l < 5; l++) {
-                lightRay += lightDir;
 
+            for (int l = 0; l < steps; l++) {
+                lightRay += lightDir;
                 lightSample = Sample(lightRay);
                 shadowDist += lightSample;
             }
+
+            currentDensity = clamp(dencity * stepDensity, 0.0, 1.0);
+            float shadowTerm = exp(-shadowDist * shadowDensity);
+            float absorbedLight = shadowTerm * currentDensity;
+            lightEnergy += absorbedLight * transmittance;
+            transmittance *= 1.0 - currentDensity;
         }
-        currentDensity = clamp(dencity * stepDensity, 0.0, 1.0);
-        float shadowTerm = exp(-shadowDist * shadowDensity);
-        float absorbedLight = shadowTerm * currentDensity;
-        lightEnergy += absorbedLight * transmittance;
-        transmittance *= 1.0 - currentDensity;
+
+        if (transmittance < 0.01)
+        {
+            transmittance = 0.0;
+            break;
+        }
 
         rayOrigin += rayDirection;
     }
 
-    gl_FragColor = vec4(lightEnergy, lightEnergy, lightEnergy, 1.0 - transmittance);
+    float alpha = 1.0 - transmittance;
+
+    return vec4(lightEnergy, lightEnergy, lightEnergy, alpha);
+}
+
+void main() {
+    gl_FragColor = Fragmet();
 }

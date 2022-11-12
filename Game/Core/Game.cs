@@ -125,7 +125,10 @@ public class Game : IDisposable
 
         await _context.EnableAsync(EnableCap.CULL_FACE);
         await _context.EnableAsync(EnableCap.DEPTH_TEST);
-        // await _context.EnableAsync(EnableCap.BLEND);
+
+        await _context.EnableAsync(EnableCap.BLEND);
+        await _context.BlendEquationAsync(BlendingEquation.FUNC_ADD);
+        await _context.BlendFuncAsync(BlendingMode.SRC_ALPHA, BlendingMode.ONE_MINUS_SRC_ALPHA);
 
         var _renderesCount = 0;
         foreach (var entity in _currentScene.Root)
@@ -138,10 +141,8 @@ public class Game : IDisposable
                     if (shader == null)
                         continue;
 
-
                     if (renderer.MeshType == MeshType.None)
                         continue;
-
 
                     var mesh = renderer.MeshType switch
                     {
@@ -149,7 +150,7 @@ public class Game : IDisposable
                         MeshType.Cube => _cube,
                         MeshType.None => null,
                     };
-                    
+
                     _renderData[_renderesCount].Entity = entity;
                     _renderData[_renderesCount].Mesh = mesh;
                     _renderData[_renderesCount].Shader = shader;
@@ -161,11 +162,13 @@ public class Game : IDisposable
         // TODO: Instancing
         Array.Sort(_renderData, 0, _renderesCount);
         Shader? _currentShader = default;
-        
+        Mesh? _currentMesh = default;
+
         for (int i = 0; i < _renderesCount; i++)
         {
             var (entity, mesh, shader) = _renderData[i];
 
+            await _context.BeginBatchAsync();
 
             if (_currentShader != shader)
             {
@@ -196,6 +199,9 @@ public class Game : IDisposable
                 DataType.UNSIGNED_SHORT,
                 0
             );
+            await mesh.UnBind(_context, shader);
+
+            await _context.EndBatchAsync();
         }
     }
 

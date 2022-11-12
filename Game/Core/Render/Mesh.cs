@@ -30,15 +30,38 @@ public class Mesh
 
     public async Task Bind(WebGLContext context, Shader shader)
     {
-        await context.BindBufferAsync(BufferType.ARRAY_BUFFER, _verticesBuffer);
-        await context.EnableVertexAttribArrayAsync(shader.PositionOS);
-        await context.VertexAttribPointerAsync(shader.PositionOS, 3, DataType.FLOAT, false, 0, 0);
+        if (shader.PositionOS != -1)
+        {
+            var attributeId = (uint) shader.PositionOS;
+            await context.BindBufferAsync(BufferType.ARRAY_BUFFER, _verticesBuffer);
+            await context.VertexAttribPointerAsync(attributeId, 3, DataType.FLOAT, false, 0, 0);
+            await context.EnableVertexAttribArrayAsync(attributeId);
+        }
 
-        await context.BindBufferAsync(BufferType.ARRAY_BUFFER, _uvsBuffer);
-        await context.EnableVertexAttribArrayAsync(shader.Texcoord);
-        await context.VertexAttribPointerAsync(shader.Texcoord, 2, DataType.FLOAT, false, 0, 0);
+        if (shader.Texcoord != -1)
+        {
+            var attributeId = (uint) shader.Texcoord;
+            await context.BindBufferAsync(BufferType.ARRAY_BUFFER, _uvsBuffer);
+            await context.VertexAttribPointerAsync(attributeId, 2, DataType.FLOAT, false, 0, 0);
+            await context.EnableVertexAttribArrayAsync(attributeId);
+        }
 
         await context.BindBufferAsync(BufferType.ELEMENT_ARRAY_BUFFER, _indicesBuffer);
+    }
+
+    public async Task UnBind(WebGLContext context, Shader shader)
+    {
+        if (shader.PositionOS != -1)
+        {
+            await context.DisableVertexAttribArrayAsync((uint) shader.PositionOS);
+        }
+
+        if (shader.Texcoord != -1)
+        {
+            await context.DisableVertexAttribArrayAsync((uint) shader.Texcoord);
+        }
+
+        await context.BindBufferAsync(BufferType.ELEMENT_ARRAY_BUFFER, null);
     }
 
     private static Mesh? _quad;

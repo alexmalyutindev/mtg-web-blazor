@@ -11,8 +11,8 @@ public class Shader
     public bool IsLoaded { get; private set; }
     public bool IsCompiled { get; private set; }
 
-    public uint PositionOS { get; private set; }
-    public uint Texcoord { get; private set; }
+    public int PositionOS { get; private set; }
+    public int Texcoord { get; private set; }
 
     public WebGLUniformLocation Time { get; private set; }
     public WebGLUniformLocation ObjectToWorld { get; private set; }
@@ -99,9 +99,12 @@ public class Shader
         await shader.LocateGlobalUniforms(context);
 
         // TODO: attributes & uniforms dictionary
-        shader.PositionOS = (uint) await context.GetAttribLocationAsync(shader._program, "a_PositionOS");
-        shader.Texcoord = (uint) await context.GetAttribLocationAsync(shader._program, "a_Texcoord");
+        shader.PositionOS = await context.GetAttribLocationAsync(shader._program, "a_PositionOS");
+        shader.Texcoord = await context.GetAttribLocationAsync(shader._program, "a_Texcoord");
 
+        Console.WriteLine("PositionOS: " + shader.PositionOS);
+        Console.WriteLine("Texcoord: " + await context.GetAttribLocationAsync(shader._program, "a_Texcoord"));
+        
         shader.IsCompiled = true;
     }
 
@@ -152,21 +155,12 @@ public class Shader
 
     private async Task LocateGlobalUniforms(WebGLContext context)
     {
-        Console.WriteLine(nameof(LocateGlobalUniforms));
-        
         Time = await context.GetUniformLocationAsync(_program, "u_Time");
         ObjectToWorld = await context.GetUniformLocationAsync(_program, "u_ObjectToWorld");
         InvObjectToWorld = await context.GetUniformLocationAsync(_program, "u_InvObjectToWorld");
         WorldToView = await context.GetUniformLocationAsync(_program, "u_WorldToView");
         Projection = await context.GetUniformLocationAsync(_program, "u_Projection");
         CameraPositionWS = await context.GetUniformLocationAsync(_program, "u_CameraPositionWS");
-        
-        Console.WriteLine(Time?.Id);
-        Console.WriteLine(ObjectToWorld?.Id);
-        Console.WriteLine(InvObjectToWorld?.Id);
-        Console.WriteLine(WorldToView?.Id);
-        Console.WriteLine(Projection?.Id);
-        Console.WriteLine(CameraPositionWS?.Id);
     }
 
     public async Task Bind(WebGLContext context)

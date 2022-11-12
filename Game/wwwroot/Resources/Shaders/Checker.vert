@@ -1,12 +1,12 @@
 precision mediump float;
 
+attribute vec3 a_PositionOS;
+attribute vec2 a_Texcoord;
+
 uniform float u_Time;
 uniform mat4 u_ObjectToWorld;
 uniform mat4 u_WorldToView;
 uniform mat4 u_Projection;
-
-attribute vec3 a_PositionOS;
-attribute vec2 a_Texcoord;
 
 varying vec2 v_Texcoord;
 varying vec3 v_PositionWS;
