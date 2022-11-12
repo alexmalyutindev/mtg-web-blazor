@@ -28,3 +28,19 @@ window.RequestMouseLock = function (canvasId)
     if (document.pointerLockElement === null || document.pointerLockElement.id !== canvasId)
         document.getElementById(canvasId).requestPointerLock();
 }
+
+window.RequestAnimationFrame = function (engine)
+{
+    let stopLoop = false;
+    function JsLoop () {
+        engine.invokeMethodAsync("Loop");
+        if (stopLoop) return;
+        requestAnimationFrame(JsLoop);
+    }
+    
+    window.StopLoop = () => {
+        stopLoop = true;
+    }
+    
+    JsLoop();
+}

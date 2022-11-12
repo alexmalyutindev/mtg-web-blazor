@@ -20,21 +20,23 @@ public partial class MainView : ComponentBase, IDisposable
     private Game _game;
 
     private Input.Bridge _bridge;
+    private DotNetObjectReference<MainView> _reference;
+
+    [JSInvokable(nameof(Loop))]
+    public async Task Loop()
+    {
+        await _game.MainLoop();
+        ;
+    }
 
     protected override async void OnInitialized()
     {
+        _reference = DotNetObjectReference.Create(this);
+
         Resources.Init(_HttpClient);
         _bridge = new Input.Bridge();
         await _bridge.Bind(_runtime, _canvasReference);
     }
-
-    private void RequestMouseLock(MouseEventArgs obj)
-    {
-        _runtime.InvokeVoidAsync(nameof(RequestMouseLock), _canvasReference.Id);
-    }
-
-    private bool _shouldRender = true;
-    private Task mainLoop = Task.CompletedTask;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -43,28 +45,25 @@ public partial class MainView : ComponentBase, IDisposable
             _context = await _canvasReference.CreateWebGLAsync();
             _game = new Game(_context);
             await _game.Init();
+
+            // First time request a loop on js side.
+            await _runtime.InvokeVoidAsync("RequestAnimationFrame", _reference);
         }
 
-        if (!mainLoop.IsCompleted) // Called from another event!
-        {
-            Console.WriteLine(new System.Diagnostics.StackTrace());
-            return;
-        }
-
-        mainLoop = _game.MainLoop();
-        await mainLoop;
-
-        StateHasChanged();
+        await _game.MainLoop();
     }
 
-    protected override bool ShouldRender()
-    {
-        return mainLoop.IsCompleted;
-    }
+    protected override bool ShouldRender() => true;
 
     public void Dispose()
     {
         _bridge.Unbind(_runtime);
         _context.Dispose();
+        _runtime.InvokeVoidAsync("StopLoop");
+    }
+
+    private void RequestMouseLock(MouseEventArgs obj)
+    {
+        _runtime.InvokeVoidAsync(nameof(RequestMouseLock), _canvasReference.Id);
     }
 }

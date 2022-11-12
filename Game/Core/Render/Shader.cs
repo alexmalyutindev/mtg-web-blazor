@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Blazor.Extensions.Canvas.WebGL;
 
 namespace MtgWeb.Core.Render;
@@ -150,12 +151,20 @@ public class Shader
     private async Task LocateGlobalUniforms(WebGLContext context)
     {
         Console.WriteLine(nameof(LocateGlobalUniforms));
+        
         Time = await context.GetUniformLocationAsync(_program, "u_Time");
         ObjectToWorld = await context.GetUniformLocationAsync(_program, "u_ObjectToWorld");
         InvObjectToWorld = await context.GetUniformLocationAsync(_program, "u_InvObjectToWorld");
         WorldToView = await context.GetUniformLocationAsync(_program, "u_WorldToView");
         Projection = await context.GetUniformLocationAsync(_program, "u_Projection");
         CameraPositionWS = await context.GetUniformLocationAsync(_program, "u_CameraPositionWS");
+        
+        Console.WriteLine(Time?.Id);
+        Console.WriteLine(ObjectToWorld?.Id);
+        Console.WriteLine(InvObjectToWorld?.Id);
+        Console.WriteLine(WorldToView?.Id);
+        Console.WriteLine(Projection?.Id);
+        Console.WriteLine(CameraPositionWS?.Id);
     }
 
     public async Task Bind(WebGLContext context)

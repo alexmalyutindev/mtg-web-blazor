@@ -157,6 +157,7 @@ public class Game : IDisposable
             }
         }
 
+        // TODO: Instancing
         Array.Sort(_renderData, 0, _renderesCount);
         Shader? _currentShader = default;
         
