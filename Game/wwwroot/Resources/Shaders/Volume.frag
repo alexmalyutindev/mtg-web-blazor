@@ -10,6 +10,8 @@ uniform vec3 u_CameraPositionWS;
 uniform vec3 u_MainLightDir;
 
 varying vec3 v_PositionOS;
+varying vec3 v_PositionVS;
+varying vec3 v_PositionWS;
 varying vec3 v_RayOrigin;
 varying vec3 v_RayDir;
 
@@ -44,29 +46,32 @@ float boxDistance(in vec3 p, in vec3 rad)
 }
 
 float Sample(vec3 p) {
-    return smoothstep(0.5, 0.6, 1.0 - length(p));
+    return smoothstep(0.0, 0.5, 1.0 - length(p) * 2.0);
 }
 
 vec4 Fragmet() {
     const int steps = 10;
     const float stepSize = 1.0 / float(steps);
 
-    vec3 rayOrigin = v_PositionOS;
-    vec3 rayDirection = normalize(v_RayDir);
+    vec3 viewDirWS = u_CameraPositionWS - v_PositionWS;
+     
+    vec3 rayOrigin = v_RayOrigin;
+    vec3 rayDirection = -viewDirWS / v_PositionVS.z;
 
     vec3 lightRay = vec3(0);
-    vec3 lightDir = normalize(vec3(1, 1, 1)); // TODO: u_MainLightDir;
+    vec3 lightDir = -normalize(vec3(1, 1, 1)); // TODO: u_MainLightDir;
     lightDir *= stepSize;
 
     vec2 boxIntersection = BoxIntersection(rayOrigin, rayDirection, vec3(0.5), 10.0);
     float depth = abs(boxIntersection.y - boxIntersection.x);
-    
+    rayOrigin += rayDirection * boxIntersection.x;
+
     rayDirection *= stepSize;
 
 //    return vec4(depth, depth, depth, 1.0);
 
     //Settings 
-    float stepDensity = 5.0 * stepSize;
+    float stepDensity = 6.0 * stepSize;
     float shadowDensity = 5.0 * stepSize;
 
     float currentDensity = 0.0;
@@ -98,7 +103,7 @@ vec4 Fragmet() {
             transmittance *= 1.0 - currentDensity;
         }
 
-        if (transmittance < 0.01)
+        if (transmittance < 0.001)
         {
             transmittance = 0.0;
             break;
