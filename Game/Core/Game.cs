@@ -61,7 +61,8 @@ public class Game : IDisposable
 
     public async Task MainLoop()
     {
-        Time.StartFrame(_stopwatch.ElapsedMilliseconds * 0.001f); // (1.0f / 60f);
+        _stopwatch.Stop();
+        Time.StartFrame(_stopwatch.ElapsedMilliseconds * 0.001f);
         _stopwatch.Restart();
 
         // TODO: Separate Physics loop
@@ -72,13 +73,7 @@ public class Game : IDisposable
         Input.LateUpdate();
         await Render();
 
-        _stopwatch.Stop();
         Time.EndFrame(_stopwatch);
-
-        // if (_stopwatch.ElapsedMilliseconds < 1000f / 60f)
-        // {
-        //     await Task.Delay((int) (1000f / 60f - _stopwatch.ElapsedMilliseconds));
-        // }
     }
 
     private async Task Update()
