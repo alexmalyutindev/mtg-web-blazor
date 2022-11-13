@@ -25,7 +25,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet publish --output ./dist
+      run: dotnet publish --output ./dist -c Release
+    - name: Add .nojekyll file
+      run: touch ./dist/wwwroot/.nojekyll
     - name: Upload GitHub Pages artifact
       uses: actions/upload-pages-artifact@v1.0.4
       with:
@@ -35,6 +37,7 @@ jobs:
     needs: build
 
     permissions:
+      contents: read
       pages: write    
       id-token: write 
 
