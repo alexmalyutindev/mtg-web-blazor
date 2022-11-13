@@ -1,5 +1,6 @@
 using System.Numerics;
-using BepuUtilities;
+using MtgWeb.Core.Render;
+using Newtonsoft.Json;
 
 namespace MtgWeb.Core;
 
@@ -13,9 +14,39 @@ public class PlayerController : Component
     private float _moveSpeed = 2.5f;
     private float _sprintSpeed = 4.5f;
 
+    public int _currentBulletPoolIndex = 0;
+
     public override void Start()
     {
-        // _camera = Entity.Components.First(component => component is Camera) as Camera;
+        Array.Resize(ref Entity.Children, 5);
+        for (int i = 0; i < Entity.Children.Length; i++)
+        {
+            Entity.Children[i] = new Entity()
+            {
+                Enabled = false,
+                Name = $"Bullet {i}",
+                Parrent = Entity.Parrent,
+                Transform =
+                {
+                    Scale = new Vector3(-0.5f)
+                },
+                Components = new Component[]
+                {
+                    new BulletController()
+                    {
+                        Velocity = Entity.Transform.Forward,
+                        LifeTime = 3f
+                    },
+                    new Renderer()
+                    {
+                        Shader = Shader.Create("Volume"),
+                        MeshType = MeshType.Cube
+                    }
+                }
+            };
+            Entity.Children[i].InitComponents();
+            Entity.Children[i].StartComponents();
+        }
     }
 
     public override void Update()
@@ -67,6 +98,24 @@ public class PlayerController : Component
             _grounded = false;
             _velocityY = 5f;
         }
+
+        if (Input.Fire == ButtonState.Down)
+        {
+            InstantiateBullet();
+        }
+    }
+
+    private void InstantiateBullet()
+    {
+        var bulletEntity = Entity.Children[_currentBulletPoolIndex];
+        _currentBulletPoolIndex = (_currentBulletPoolIndex + 1) % Entity.Children.Length;
+
+        bulletEntity.TryGetComponent(out BulletController bullet);
+        bulletEntity.Transform.Position = Entity.Transform.Position - Entity.Transform.Forward;
+        bullet.Velocity = Entity.Transform.Forward;
+        bullet.Reset();
+
+        Console.WriteLine(JsonConvert.SerializeObject(bullet));
     }
 
     private static bool IsSprinting()
@@ -74,5 +123,36 @@ public class PlayerController : Component
         var shift = Input.GetKeyState(KeyCode.Shift);
         var isSprinting = shift is ButtonState.Press or ButtonState.Down;
         return isSprinting;
+    }
+}
+
+public class BulletController : Component
+{
+    public float LifeTime = 5.0f;
+    private float _lifeTime = 0.0f;
+    public Vector3 Velocity;
+
+    public override void Update()
+    {
+        if (_lifeTime > LifeTime)
+        {
+            Entity.Enabled = false;
+        }
+
+        Entity.Transform.Position -= Velocity * Time.DeltaTime * 10.0f;
+
+        Velocity += Vector3.UnitY * 5f * Time.DeltaTime;
+        if (Entity.Transform.Position.Y < 0.5f)
+        {
+            Velocity.Y = -Velocity.Y;
+        }
+
+        _lifeTime += Time.DeltaTime;
+    }
+
+    public void Reset()
+    {
+        _lifeTime = 0;
+        Entity.Enabled = true;
     }
 }

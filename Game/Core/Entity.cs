@@ -1,6 +1,4 @@
 using System.Text.Json.Serialization;
-using BepuPhysics;
-using BepuPhysics.Collidables;
 using MtgWeb.Core.Physics;
 using Newtonsoft.Json;
 
@@ -8,19 +6,24 @@ namespace MtgWeb.Core;
 
 public class Entity
 {
+    public bool Enabled { get; set; } = true;
+    
     public String Name = "New Entity";
     public readonly Transform Transform = new(); // TODO: Add WorldSpace matrix for children.
-
+    
     [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
     public MeshType MeshType;
 
     public RigidBody RigidBody;
     public StaticBody StaticBody;
 
+
     [JsonProperty(TypeNameHandling = TypeNameHandling.Auto, ItemTypeNameHandling = TypeNameHandling.Auto)]
     public Component[] Components = Array.Empty<Component>();
 
+    [Newtonsoft.Json.JsonIgnore]
     public Entity Parrent;
+
     public Entity[] Children = Array.Empty<Entity>();
 
     public void InitComponents()
@@ -76,6 +79,11 @@ public class Entity
 
     public void UpdateComponents()
     {
+        foreach (var child in Children)
+        {
+            child.UpdateComponents();
+        }
+
         foreach (var component in Components)
         {
             component.Update();

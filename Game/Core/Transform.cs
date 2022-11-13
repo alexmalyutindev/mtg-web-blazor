@@ -1,11 +1,12 @@
 using System.Numerics;
 using MtgWeb.Core.Utils;
+using Newtonsoft.Json;
 
 namespace MtgWeb.Core;
 
 public class Transform
 {
-    public bool WasChanged { get; private set; } = false;
+    [JsonIgnore] public bool WasChanged { get; private set; } = false;
 
     public Vector3 Position
     {
@@ -53,9 +54,9 @@ public class Transform
         }
     }
 
-    public Vector3 Forward => new Vector3(Matrix[FORWARD_X], Matrix[FORWARD_Y], Matrix[FORWARD_Z]);
-    public Vector3 Right => new Vector3(Matrix[RIGHT_X], Matrix[RIGHT_Y], Matrix[RIGHT_Z]);
-    public Vector3 Up => new Vector3(Matrix[UP_X], Matrix[UP_Y], Matrix[UP_Z]);
+    [JsonIgnore] public Vector3 Forward => new Vector3(Matrix[FORWARD_X], Matrix[FORWARD_Y], Matrix[FORWARD_Z]);
+    [JsonIgnore] public Vector3 Right => new Vector3(Matrix[RIGHT_X], Matrix[RIGHT_Y], Matrix[RIGHT_Z]);
+    [JsonIgnore] public Vector3 Up => new Vector3(Matrix[UP_X], Matrix[UP_Y], Matrix[UP_Z]);
 
     private const int TRANSLATION_X = 12, TRANSLATION_Y = 13, TRANSLATION_Z = 14;
 
@@ -63,7 +64,7 @@ public class Transform
     private const int UP_X = 1, UP_Y = 5, UP_Z = 9;
     private const int FORWARD_X = 2, FORWARD_Y = 6, FORWARD_Z = 10;
 
-    public float[] Matrix = new float[16]
+    [JsonIgnore] public float[] Matrix = new float[16]
     {
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -71,7 +72,7 @@ public class Transform
         0, 0, 0, 1,
     };
 
-    public float[] InvMatrix = new float[16]
+    [JsonIgnore] public float[] InvMatrix = new float[16]
     {
         1, 0, 0, 0,
         0, 1, 0, 0,

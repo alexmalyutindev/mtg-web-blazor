@@ -61,7 +61,7 @@ public class Game : IDisposable
 
     public async Task MainLoop()
     {
-        Time.StartFrame(1.0f / 60f);
+        Time.StartFrame(_stopwatch.ElapsedMilliseconds * 0.001f); // (1.0f / 60f);
         _stopwatch.Restart();
 
         // TODO: Separate Physics loop
@@ -75,10 +75,10 @@ public class Game : IDisposable
         _stopwatch.Stop();
         Time.EndFrame(_stopwatch);
 
-        if (_stopwatch.ElapsedMilliseconds < 1000f / 60f)
-        {
-            await Task.Delay((int) (1000f / 60f - _stopwatch.ElapsedMilliseconds));
-        }
+        // if (_stopwatch.ElapsedMilliseconds < 1000f / 60f)
+        // {
+        //     await Task.Delay((int) (1000f / 60f - _stopwatch.ElapsedMilliseconds));
+        // }
     }
 
     private async Task Update()
@@ -116,23 +116,34 @@ public class Game : IDisposable
         foreach (var entity in _currentScene.Root)
         {
             entity.Transform.Update();
+            foreach (var child in entity.Children) // TODO
+            {
+                child.Transform.Update();
+            }
         }
 
         var clearColor = _camera.ClearColor;
-        await _context.ViewportAsync(0, 0, MainView.Width, MainView.Height);
-        await _context.ClearColorAsync(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W);
-        await _context.ClearAsync(BufferBits.COLOR_BUFFER_BIT);
+        await _context.BeginBatchAsync();
+        {
+            await _context.ViewportAsync(0, 0, MainView.Width, MainView.Height);
+            await _context.ClearColorAsync(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W);
+            await _context.ClearAsync(BufferBits.COLOR_BUFFER_BIT);
 
-        await _context.EnableAsync(EnableCap.CULL_FACE);
-        await _context.EnableAsync(EnableCap.DEPTH_TEST);
+            await _context.EnableAsync(EnableCap.CULL_FACE);
+            await _context.EnableAsync(EnableCap.DEPTH_TEST);
 
-        await _context.EnableAsync(EnableCap.BLEND);
-        await _context.BlendEquationAsync(BlendingEquation.FUNC_ADD);
-        await _context.BlendFuncAsync(BlendingMode.SRC_ALPHA, BlendingMode.ONE_MINUS_SRC_ALPHA);
+            await _context.EnableAsync(EnableCap.BLEND);
+            await _context.BlendEquationAsync(BlendingEquation.FUNC_ADD);
+            await _context.BlendFuncAsync(BlendingMode.SRC_ALPHA, BlendingMode.ONE_MINUS_SRC_ALPHA);
+        }
+        await _context.EndBatchAsync();
 
         var _renderesCount = 0;
         foreach (var entity in _currentScene.Root)
         {
+            if (!entity.Enabled)
+                continue;
+
             if (entity.TryGetComponents<Renderer>(out var renderers))
             {
                 foreach (var renderer in renderers)
@@ -157,6 +168,38 @@ public class Game : IDisposable
                     _renderesCount++;
                 }
             }
+
+            // TODO: Make proper tree iteration
+            foreach (var child in entity.Children)
+            {
+                if (!child.Enabled)
+                    continue;
+
+                if (child.TryGetComponents<Renderer>(out var childRenderers))
+                {
+                    foreach (var renderer in childRenderers)
+                    {
+                        var shader = renderer.Shader;
+                        if (shader == null)
+                            continue;
+
+                        if (renderer.MeshType == MeshType.None)
+                            continue;
+
+                        var mesh = renderer.MeshType switch
+                        {
+                            MeshType.Quad => _quad,
+                            MeshType.Cube => _cube,
+                            MeshType.None => null,
+                        };
+
+                        _renderData[_renderesCount].Entity = child;
+                        _renderData[_renderesCount].Mesh = mesh;
+                        _renderData[_renderesCount].Shader = shader;
+                        _renderesCount++;
+                    }
+                }
+            }
         }
 
         // TODO: Instancing
@@ -164,11 +207,10 @@ public class Game : IDisposable
         Shader? _currentShader = default;
         Mesh? _currentMesh = default;
 
+        await _context.BeginBatchAsync();
         for (int i = 0; i < _renderesCount; i++)
         {
             var (entity, mesh, shader) = _renderData[i];
-
-            await _context.BeginBatchAsync();
 
             if (_currentShader != shader)
             {
@@ -200,9 +242,9 @@ public class Game : IDisposable
                 0
             );
             await mesh.UnBind(_context, shader);
-
-            await _context.EndBatchAsync();
         }
+
+        await _context.EndBatchAsync();
     }
 
     public void Dispose()

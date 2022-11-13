@@ -62,7 +62,7 @@ vec4 Fragmet() {
     vec3 lightDir = -normalize(vec3(1, 1, 1)); // TODO: u_MainLightDir;
     lightDir *= stepSize;
 
-    vec2 boxIntersection = BoxIntersection(rayOrigin, rayDirection, vec3(0.5), 10.0);
+    vec2 boxIntersection = BoxIntersection(rayOrigin, rayDirection, vec3(0.5), 100.0);
     float depth = abs(boxIntersection.y - boxIntersection.x);
     rayOrigin += rayDirection * boxIntersection.x;
 
@@ -114,7 +114,10 @@ vec4 Fragmet() {
 
     float alpha = 1.0 - transmittance;
 
-    return vec4(lightEnergy, lightEnergy, lightEnergy, alpha);
+    
+    vec3 baseColor = vec3(0.2, 1.0, 0.2);
+    vec3 color = mix(baseColor * 0.2, baseColor, lightEnergy);
+    return vec4(color, alpha);
 }
 
 void main() {

@@ -1,9 +1,10 @@
-using MtgWeb.Core.Render;
+using Newtonsoft.Json;
 
 namespace MtgWeb.Core;
 
 public class Component
 {
+    [JsonIgnore]
     public Entity? Entity;
 
     public void Init(Entity entity)
