@@ -25,10 +25,21 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore --output ./dist
-    - name: Upload GitHub Pages artifact
-      uses: actions/upload-pages-artifact@v1.0.4
-      with:
-        path: ./dist
-    - name: Deploy GitHub Pages site
-      uses: actions/deploy-pages@v1.2.2
+      run: dotnet publish --output ./dist
+      
+  deploy:
+    needs: build
+
+    permissions:
+      pages: write    
+      id-token: write 
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1 
