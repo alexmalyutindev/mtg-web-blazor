@@ -10,9 +10,6 @@ public class Entity
     
     public String Name = "New Entity";
     public readonly Transform Transform = new(); // TODO: Add WorldSpace matrix for children.
-    
-    [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
-    public MeshType MeshType;
 
     public RigidBody RigidBody;
     public StaticBody StaticBody;
@@ -47,25 +44,25 @@ public class Entity
         return true;
     }
     
-    public bool TryGetComponents<T>(out T[] component) where T : Component
+    public bool TryGetComponents<T>(out T[]? components) where T : Component
     {
         // TODO: Caching
-        var components = Components.OfType<T>();
+        var comps = Components.OfType<T>();
 
-        if (!components.Any())
+        if (!comps.Any())
         {
-            component = null;
+            components = null;
             return false;
         }
     
-        component = components.ToArray();
+        components = comps.ToArray();
         return true;
     }
 
-    public void StartComponents()
+    public async Task StartComponents()
     {
-        foreach (var entity in Children) entity.StartComponents();
-        foreach (var component in Components) component.Start();
+        foreach (var entity in Children) await entity.StartComponents();
+        foreach (var component in Components) await component.Start();
     }
 
     public void BindHierarchy()
@@ -81,7 +78,7 @@ public class Entity
     {
         foreach (var child in Children)
         {
-            child.UpdateComponents();
+            child?.UpdateComponents();
         }
 
         foreach (var component in Components)

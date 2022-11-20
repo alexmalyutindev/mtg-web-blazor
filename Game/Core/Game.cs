@@ -55,7 +55,7 @@ public class Game : IDisposable
 
         foreach (var entity in _currentScene.Root)
         {
-            entity.StartComponents();
+            await entity.StartComponents();
         }
     }
 
@@ -143,7 +143,7 @@ public class Game : IDisposable
             {
                 foreach (var renderer in renderers)
                 {
-                    var shader = renderer.Shader;
+                    var shader = renderer.Material.Shader;
                     if (shader == null)
                         continue;
 
@@ -155,6 +155,7 @@ public class Game : IDisposable
                         MeshType.Quad => _quad,
                         MeshType.Cube => _cube,
                         MeshType.None => null,
+                        _ => null
                     };
 
                     _renderData[_renderesCount].Entity = entity;
@@ -174,7 +175,7 @@ public class Game : IDisposable
                 {
                     foreach (var renderer in childRenderers)
                     {
-                        var shader = renderer.Shader;
+                        var shader = renderer.Material.Shader;
                         if (shader == null)
                             continue;
 

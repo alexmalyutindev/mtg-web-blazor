@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Extensions.Canvas", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Extensions.Canvas.JS", "Canvas\src\Blazor.Extensions.Canvas.JS\Blazor.Extensions.Canvas.JS.csproj", "{426BBB7E-1EE7-48AD-9451-AD4F46E4DFC6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtgWebTests", "MtgWebTests\MtgWebTests.csproj", "{6F98A115-39E4-458A-B166-D21074C9332C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{426BBB7E-1EE7-48AD-9451-AD4F46E4DFC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{426BBB7E-1EE7-48AD-9451-AD4F46E4DFC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{426BBB7E-1EE7-48AD-9451-AD4F46E4DFC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F98A115-39E4-458A-B166-D21074C9332C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F98A115-39E4-458A-B166-D21074C9332C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F98A115-39E4-458A-B166-D21074C9332C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F98A115-39E4-458A-B166-D21074C9332C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

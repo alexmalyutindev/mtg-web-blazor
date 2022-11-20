@@ -12,7 +12,7 @@ public class Component
         Entity ??= entity;
     }
 
-    public virtual void Start() { }
+    public virtual async Task Start() { }
 
     public virtual void Update() { }
 }

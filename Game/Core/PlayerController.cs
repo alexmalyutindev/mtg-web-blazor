@@ -6,7 +6,6 @@ namespace MtgWeb.Core;
 
 public class PlayerController : Component
 {
-    // private Camera? _camera;
     private bool _grounded;
     private float _playerHeight = 1.75f;
     private float _velocityY;
@@ -16,8 +15,9 @@ public class PlayerController : Component
 
     public int _currentBulletPoolIndex = 0;
 
-    public override void Start()
+    public override async Task Start()
     {
+        Console.WriteLine("Create bullets.");
         Array.Resize(ref Entity.Children, 5);
         for (int i = 0; i < Entity.Children.Length; i++)
         {
@@ -39,13 +39,16 @@ public class PlayerController : Component
                     },
                     new Renderer()
                     {
-                        Shader = Shader.Create("Volume"),
+                        Material = new Material
+                        {
+                            Shader = Shader.Create("Volume")
+                        },
                         MeshType = MeshType.Cube
                     }
                 }
             };
             Entity.Children[i].InitComponents();
-            Entity.Children[i].StartComponents();
+            await Entity.Children[i].StartComponents();
         }
     }
 

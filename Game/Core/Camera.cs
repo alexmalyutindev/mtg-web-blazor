@@ -28,10 +28,6 @@ public class Camera : Component
         _projection.ToArray(in Projection);
     }
 
-    public override void Start()
-    {
-    }
-
     public override void Update()
     {
         var transform = Entity.Transform;

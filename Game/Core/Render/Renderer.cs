@@ -1,45 +1,14 @@
-using Newtonsoft.Json;
-
 namespace MtgWeb.Core.Render;
 
 public class Renderer : Component
 {
     public MeshType MeshType;
-
-    [JsonConverter(typeof(ShaderConverter))]
-    public Shader Shader;
-
-    public override async void Start()
-    {
-        await Shader.Load();
-    }
-}
-
-public class ShaderConverter : JsonConverter<Shader>
-{
-    public override bool CanRead => true;
-    public override bool CanWrite => false;
-
-    public override void WriteJson(JsonWriter writer, Shader? value, JsonSerializer serializer) { }
-
-    private struct ShaderData
-    {
-        public string Name;
-        public int Queue;
-    }
+    public Material? Material;
     
-    public override Shader? ReadJson(
-        JsonReader reader,
-        Type objectType,
-        Shader? existingValue,
-        bool hasExistingValue,
-        JsonSerializer serializer
-    )
+    public override async Task Start()
     {
-        var data = serializer.Deserialize<ShaderData>(reader);
-        var shader = Shader.Create(data.Name);
-        shader.Queue = data.Queue;
-
-        return shader;
+        // await Material.Init();
+        if (Material != null)
+            await Material.Load();
     }
 }

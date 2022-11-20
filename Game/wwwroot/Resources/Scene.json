@@ -51,9 +51,11 @@
         {
           "$type": "MtgWeb.Core.Render.Renderer, MtgWeb",
           "MeshType": "Quad",
-          "Shader": {
-            "Name" : "Checker",
-            "Queue" : 0
+          "Material": {
+            "Shader": {
+              "Name": "Lit",
+              "Queue": 0
+            }
           }
         }
       ]
@@ -82,9 +84,11 @@
         {
           "$type": "MtgWeb.Core.Render.Renderer, MtgWeb",
           "MeshType": "Quad",
-          "Shader": {
-            "Name" : "Checker",
-            "Queue" : 0
+          "Material": {
+            "Shader": {
+              "Name": "Checker",
+              "Queue": 0
+            }
           }
         }
       ]
@@ -113,9 +117,11 @@
         {
           "$type": "MtgWeb.Core.Render.Renderer, MtgWeb",
           "MeshType": "Cube",
-          "Shader": {
-            "Name" : "Volume",
-            "Queue" : 100
+          "Material": {
+            "Shader": {
+              "Name": "Volume",
+              "Queue": 100
+            }
           }
         }
       ]

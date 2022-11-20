@@ -20,6 +20,7 @@ public class Shader
     public WebGLUniformLocation WorldToView { get; private set; }
     public WebGLUniformLocation Projection { get; private set; }
     public WebGLUniformLocation CameraPositionWS { get; private set; }
+    public WebGLProgram Program => _program;
 
     private WebGLProgram _program;
     private WebGLShader _vertexSader;
