@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using MtgWeb.Core.Physics;
 using Newtonsoft.Json;
 
@@ -7,7 +6,7 @@ namespace MtgWeb.Core;
 public class Entity
 {
     public bool Enabled { get; set; } = true;
-    
+
     public String Name = "New Entity";
     public readonly Transform Transform = new(); // TODO: Add WorldSpace matrix for children.
 
@@ -18,10 +17,18 @@ public class Entity
     [JsonProperty(TypeNameHandling = TypeNameHandling.Auto, ItemTypeNameHandling = TypeNameHandling.Auto)]
     public Component[] Components = Array.Empty<Component>();
 
-    [Newtonsoft.Json.JsonIgnore]
-    public Entity Parrent;
+    [JsonIgnore] public Entity? Parent;
 
     public Entity[] Children = Array.Empty<Entity>();
+
+    public void BindHierarchy()
+    {
+        foreach (var entity in Children)
+        {
+            entity.Parent = this;
+            entity.BindHierarchy();
+        }
+    }
 
     public void InitComponents()
     {
@@ -29,21 +36,21 @@ public class Entity
         foreach (var component in Components) component.Init(this);
     }
 
-    public bool TryGetComponent<T>(out T component) where T : Component
+    public bool TryGetComponent<T>(out T? component) where T : Component?
     {
         // TODO: Caching
-        var components = Components.OfType<T>();
+        var components = Components.OfType<T>().ToArray();
 
-        if (!components.Any())
+        if (components.Length == 0)
         {
             component = null;
             return false;
         }
-    
+
         component = components.First();
         return true;
     }
-    
+
     public bool TryGetComponents<T>(out T[]? components) where T : Component
     {
         // TODO: Caching
@@ -54,7 +61,7 @@ public class Entity
             components = null;
             return false;
         }
-    
+
         components = comps.ToArray();
         return true;
     }
@@ -63,15 +70,6 @@ public class Entity
     {
         foreach (var entity in Children) await entity.StartComponents();
         foreach (var component in Components) await component.Start();
-    }
-
-    public void BindHierarchy()
-    {
-        foreach (var entity in Children)
-        {
-            entity.Parrent = this;
-            entity.BindHierarchy();
-        }
     }
 
     public void UpdateComponents()
@@ -86,6 +84,11 @@ public class Entity
             component.Update();
         }
     }
+}
+
+public class PrefabEntity : Entity
+{
+    public string PrefabName;
 }
 
 public enum MeshType

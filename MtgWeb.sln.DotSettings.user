@@ -2,5 +2,6 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=78e46abe_002Dcd76_002D4374_002D9f6d_002D5a0d212c9f78/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="MaterialSerialization" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
     &lt;TestId&gt;NUnit3x::6F98A115-39E4-458A-B166-D21074C9332C::net6.0::MtgWebTests.Tests.MaterialSerialization&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::6F98A115-39E4-458A-B166-D21074C9332C::net6.0::MtgWebTests.Tests.PrefabSerialization&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

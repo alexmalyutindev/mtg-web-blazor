@@ -13,7 +13,7 @@ public partial class MainView : ComponentBase, IDisposable
     public const int Height = 720;
 
     [Inject] private IJSRuntime _runtime { get; set; }
-    [Inject] private HttpClient _HttpClient { get; set; }
+    [Inject] private HttpClient? _HttpClient { get; set; }
 
     private BECanvasComponent _canvasReference;
     private WebGLContext _context;

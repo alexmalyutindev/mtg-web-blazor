@@ -18,35 +18,16 @@ public class PlayerController : Component
     public override async Task Start()
     {
         Console.WriteLine("Create bullets.");
+        
         Array.Resize(ref Entity.Children, 5);
         for (int i = 0; i < Entity.Children.Length; i++)
         {
-            Entity.Children[i] = new Entity()
-            {
-                Enabled = false,
-                Name = $"Bullet {i}",
-                Parrent = Entity.Parrent,
-                Transform =
-                {
-                    Scale = new Vector3(-0.5f)
-                },
-                Components = new Component[]
-                {
-                    new BulletController()
-                    {
-                        Velocity = Entity.Transform.Forward,
-                        LifeTime = 3f
-                    },
-                    new Renderer()
-                    {
-                        Material = new Material
-                        {
-                            Shader = Shader.Create("Volume")
-                        },
-                        MeshType = MeshType.Cube
-                    }
-                }
-            };
+            // TODO: Deep copy
+            var bulletPrefab = await Resources.LoadPrefab("Bullet");
+            bulletPrefab.Name = $"Bullet {i}";
+            bulletPrefab.Parent = Entity;
+
+            Entity.Children[i] = bulletPrefab;
             Entity.Children[i].InitComponents();
             await Entity.Children[i].StartComponents();
         }
@@ -113,7 +94,7 @@ public class PlayerController : Component
         var bulletEntity = Entity.Children[_currentBulletPoolIndex];
         _currentBulletPoolIndex = (_currentBulletPoolIndex + 1) % Entity.Children.Length;
 
-        bulletEntity.TryGetComponent(out BulletController bullet);
+        bulletEntity.TryGetComponent(out BulletController? bullet);
         bulletEntity.Transform.Position = Entity.Transform.Position - Entity.Transform.Forward;
         bullet.Velocity = Entity.Transform.Forward;
         bullet.Reset();

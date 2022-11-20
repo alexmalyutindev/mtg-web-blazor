@@ -1,23 +1,7 @@
 {
   "Root": [
     {
-      "Name": "Player",
-      "MeshType": "None",
-      "Transform": {
-        "Position": {
-          "X": 0.0,
-          "Y": 0.0,
-          "Z": 5.0
-        }
-      },
-      "Components": [
-        {
-          "$type": "MtgWeb.Core.PlayerController, MtgWeb"
-        },
-        {
-          "$type": "MtgWeb.Core.Camera, MtgWeb"
-        }
-      ]
+      "PrefabName" : "Player"
     },
     {
       "Name": "Floor",

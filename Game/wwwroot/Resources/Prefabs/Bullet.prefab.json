@@ -1,0 +1,27 @@
+{
+  "Name" : "Bullet",
+  "Enabled" : false,
+  "Transform" : {
+    "Scale" : {
+      "X" : -0.5,
+      "Y" : -0.5,
+      "Z" : -0.5
+    }
+  },
+  "Components": [
+    {
+      "$type": "MtgWeb.Core.Render.Renderer, MtgWeb",
+      "Material" : {
+        "Shader" : {
+          "Name" : "Volume",
+          "Queue" : "100"
+        }
+      },
+      "MeshType" : "Cube"
+    },
+    {
+      "$type": "MtgWeb.Core.BulletController, MtgWeb",
+      "LifeTime" : 3
+    }
+  ]
+}

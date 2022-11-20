@@ -33,7 +33,7 @@ public class Game : IDisposable
     {
         await LoadScene("Scene");
 
-        _currentScene.Root
+        _currentScene!.Root
             .First(entity => entity.Name.Contains("Player"))
             .TryGetComponent(out _camera);
 
@@ -78,7 +78,7 @@ public class Game : IDisposable
 
     private async Task Update()
     {
-        foreach (var entity in _currentScene.Root)
+        foreach (var entity in _currentScene!.Root)
         {
             entity.UpdateComponents();
         }
