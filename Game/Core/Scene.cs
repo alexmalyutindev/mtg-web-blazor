@@ -8,7 +8,14 @@ public class Scene
     [JsonProperty(ItemConverterType = typeof(EntityConverter))]
     public Entity[] Root;
 
-    public async Task PostLoad()
+    public static async Task<Scene> Load(string name)
+    {
+        var scene = await Resources.LoadScene(name);
+        await scene.PostLoad();
+        return scene;
+    }
+
+    private async Task PostLoad()
     {
         for (var index = 0; index < Root.Length; index++)
         {

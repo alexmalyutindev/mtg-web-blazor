@@ -43,7 +43,7 @@ public class Game : IDisposable
 
     private async Task LoadScene(string name)
     {
-        _currentScene = await Resources.LoadScene(name);
+        _currentScene = await Scene.Load(name);
         await Shader.CompileAll(_context);
         _physicsWorld.Add(_currentScene);
 

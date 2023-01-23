@@ -19,9 +19,7 @@ public class Resources
     public static async Task<Scene> LoadScene(string name)
     {
         var json = await _httpClient!.GetStringAsync($"Resources/Scenes/{name}.scene.json");
-        var scene = JsonConvert.DeserializeObject<Scene>(json, JsonSerializerSettings);
-        await scene!.PostLoad();
-        return scene;
+        return JsonConvert.DeserializeObject<Scene>(json, JsonSerializerSettings)!;
     }
 
     public static async Task<Entity> LoadPrefab(string name)
