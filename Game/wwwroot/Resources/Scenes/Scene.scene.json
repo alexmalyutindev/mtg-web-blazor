@@ -37,7 +37,7 @@
           "MeshType": "Quad",
           "Material": {
             "Shader": {
-              "Name": "Lit",
+              "Name": "Checker",
               "Queue": 0
             }
           }

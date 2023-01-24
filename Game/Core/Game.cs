@@ -80,7 +80,8 @@ public class Game : IDisposable
     {
         foreach (var entity in _currentScene!.Root)
         {
-            entity.UpdateComponents();
+            if (entity.Enabled)
+                entity.UpdateComponents();
         }
     }
 
@@ -133,6 +134,34 @@ public class Game : IDisposable
         }
         await _context.EndBatchAsync();
 
+#if true
+        var _renderesCount = 0;
+        foreach (var renderer in ComponentsBucket<Renderer>.Bucket)
+        {
+            if (!renderer.Entity.Enabled)
+                continue;
+            
+            var shader = renderer.Material!.Shader;
+            if (shader == null)
+                continue;
+
+            if (renderer.MeshType == MeshType.None)
+                continue;
+
+            var mesh = renderer.MeshType switch
+            {
+                MeshType.Quad => _quad,
+                MeshType.Cube => _cube,
+                MeshType.None => null,
+                _ => null
+            };
+
+            _renderData[_renderesCount].Entity = renderer.Entity!;
+            _renderData[_renderesCount].Mesh = mesh!;
+            _renderData[_renderesCount].Shader = shader;
+            _renderesCount++;
+        }
+#else
         var _renderesCount = 0;
         foreach (var entity in _currentScene.Root)
         {
@@ -197,6 +226,8 @@ public class Game : IDisposable
                 }
             }
         }
+#endif
+        
 
         // TODO: Instancing
         Array.Sort(_renderData, 0, _renderesCount);
@@ -246,5 +277,6 @@ public class Game : IDisposable
     public void Dispose()
     {
         _physicsWorld.Dispose();
+        _currentScene.Dispose();
     }
 }

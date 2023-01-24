@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace MtgWeb.Core;
 
-public class Entity
+public class Entity : IDisposable
 {
     public bool Enabled { get; set; } = true;
 
@@ -83,6 +83,14 @@ public class Entity
         {
             component.Update();
         }
+    }
+
+    public void Dispose()
+    {
+        foreach (var component in Components) component.Dispose();
+        Array.Clear(Components);
+        foreach (var child in Children) child.Dispose();
+        Array.Clear(Children);
     }
 }
 

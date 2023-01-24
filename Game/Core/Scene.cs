@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace MtgWeb.Core;
 
-public class Scene
+public class Scene : IDisposable
 {
     [JsonProperty(ItemConverterType = typeof(EntityConverter))]
     public Entity[] Root;
@@ -26,5 +26,10 @@ public class Scene
                 Root[index] = await Resources.LoadPrefab(prefab.PrefabName);
             }
         }
+    }
+
+    public void Dispose()
+    {
+        foreach (var entity in Root) entity.Dispose();
     }
 }

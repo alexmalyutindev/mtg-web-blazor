@@ -2,15 +2,10 @@ using Newtonsoft.Json;
 
 namespace MtgWeb.Core;
 
-public class Component
+public class Component : IDisposable
 {
     [JsonIgnore]
     public Entity? Entity;
-
-    public Component()
-    {
-        ComponentsBucket.Add(this);
-    }
 
     public void Init(Entity entity)
     {
@@ -21,7 +16,7 @@ public class Component
 
     public virtual void Update() { }
 
-    ~Component()
+    public void Dispose()
     {
         ComponentsBucket.Remove(this);
     }
